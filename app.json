@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "miss-note",
-    "slug": "miss-note",
+    "name": "ミスログ",
+    "slug": "miss-log",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
