@@ -192,19 +192,16 @@ export default function Onboarding3() {
       <View style={{ flex: 1, padding: 22, justifyContent: "space-between" }}>
         <Animated.View style={{ opacity, transform: [{ translateY: rise }] }}>
           <Text style={{ fontSize: 24, fontWeight: "900", color: "#111" }}>
-            月1回のカフェ代よりも、安い。
+            期間限定完全無料。
           </Text>
           <Text style={{ marginTop: 8, fontSize: 13, color: "#666" }}>
-            ミスを潰せたら、元は取れる。
+            今のうちに始めよう。
           </Text>
 
           <Box
             title="サブスクリプション"
             lines={[
-              "・月額 330円（税込）",
-              "・無料プランはありません",
-              "・Apple IDで決済されます",
-              "・いつでもiPhoneの設定から解約できます",
+              "・今後機能追加、拡充後にサブスクリプション準備予定",
             ]}
             delayMs={80}
           />
