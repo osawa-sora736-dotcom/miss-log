@@ -9,7 +9,9 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.penguinsagashi.missnote",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
@@ -51,8 +53,7 @@
           "savePhotosPermission": "Allow access to save photos.",
           "isAccessMediaLocationEnabled": true
         }
-      ],
-      "react-native-iap"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
