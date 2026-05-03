@@ -347,10 +347,24 @@ h3 {
 .policy {
   max-width: 900px;
   margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.85;
 }
 
 .policy h1 {
-  font-size: clamp(36px, 5vw, 56px);
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.25;
+}
+
+.policy h2 {
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+.policy ul {
+  margin: 0;
+  padding-left: 1.25em;
+  color: var(--muted);
 }
 
 .policy section {
@@ -365,6 +379,12 @@ h3 {
 .policy a {
   color: var(--primary-dark);
   font-weight: 800;
+}
+
+.footer-links {
+  display: inline-flex;
+  gap: 18px;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 920px) {
