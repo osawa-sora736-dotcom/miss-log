@@ -249,6 +249,7 @@ h3 {
 }
 
 .section,
+.audience-section,
 .split-section,
 .quote-section,
 .cta-section,
@@ -283,10 +284,63 @@ h3 {
 }
 
 .feature-grid p,
+.audience-card p,
+.audience-card li,
 .steps span,
 .cta-section p,
 .policy p {
   color: var(--muted);
+}
+
+.audience-section {
+  background: #fff;
+}
+
+.audience-section .section-title p:last-child {
+  max-width: 760px;
+  color: var(--muted);
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.audience-card {
+  min-height: 420px;
+  padding: clamp(24px, 4vw, 36px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.audience-card.exam {
+  background: linear-gradient(180deg, #ffffff 0%, #eff9ff 100%);
+}
+
+.audience-card.work {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.audience-label {
+  display: inline-flex;
+  margin-bottom: 14px;
+  color: var(--primary-dark);
+  font-weight: 900;
+}
+
+.audience-card h3 {
+  max-width: 520px;
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.2;
+}
+
+.audience-card ul {
+  display: grid;
+  gap: 10px;
+  margin: 24px 0 0;
+  padding-left: 1.2em;
 }
 
 .split-section {
@@ -399,6 +453,10 @@ h3 {
 
   .feature-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .audience-grid {
+    grid-template-columns: 1fr;
   }
 }
 
