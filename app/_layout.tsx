@@ -33,6 +33,7 @@ export default function RootLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         statusBarStyle: "dark",
         headerStyle: { backgroundColor: "#fff" },
         headerTintColor: "#000",
@@ -40,15 +41,16 @@ export default function RootLayout() {
     >
       {/* 初回のみオンボーディング */}
       {!onboardingDone ? (
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false, title: "" }} />
       ) : (
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "" }} />
       )}
 
       {/* ミス詳細 */}
       <Stack.Screen
         name="mistake/[id]"
         options={{
+          headerShown: true,
           title: "ミス詳細",
           headerBackTitle: "戻る",
         }}

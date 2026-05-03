@@ -1,6 +1,6 @@
 // app/(tabs)/add.tsx
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -13,6 +13,7 @@ import {
   View,
   Alert,
 } from "react-native";
+import { useScrollToTop } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
@@ -20,6 +21,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import { insertMistake, insertMistakePhotos } from "../../lib/db";
 import { SubjectPickerModal, Subject } from "../../components/SubjectPickerModal";
 import { PhotoGallery } from "../_components/PhotoGallery";
+import { AppColors } from "../../constants/app-theme";
 
 const Chip = ({
   label,
@@ -36,7 +38,7 @@ const Chip = ({
       paddingVertical: 8,
       paddingHorizontal: 12,
       borderRadius: 14,
-      backgroundColor: selected ? "#ff8a3d" : "#f2f2f2",
+      backgroundColor: selected ? AppColors.primaryDark : "#f2f2f2",
       marginRight: 8,
     }}
   >
@@ -87,6 +89,9 @@ const genFileName = (srcUri: string) => {
 };
 
 export default function AddScreen() {
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
   const params = useLocalSearchParams<{ date?: string; from?: string }>();
 
   const [occurredAt, setOccurredAt] = useState(new Date());
@@ -246,7 +251,7 @@ export default function AddScreen() {
         {/* カレンダー経由のときだけキャンセルボタン表示 */}
         {params.from === "calendar" ? (
           <Pressable onPress={onCancel} style={{ paddingVertical: 6, paddingRight: 10 }}>
-            <Text style={{ color: "#ff8a3d", fontWeight: "900" }}>キャンセル</Text>
+            <Text style={{ color: AppColors.primaryDark, fontWeight: "900" }}>キャンセル</Text>
           </Pressable>
         ) : (
           <View style={{ width: 72 }} />
@@ -259,6 +264,7 @@ export default function AddScreen() {
 
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
           keyboardShouldPersistTaps="handled"
         >
@@ -300,9 +306,9 @@ export default function AddScreen() {
 
           <Text style={{ fontWeight: "800", marginBottom: 6, color: "#111" }}>重要度</Text>
           <View style={{ flexDirection: "row", marginBottom: 14 }}>
-            <Chip label="Low" selected={importance === 1} onPress={() => setImportance(1)} />
-            <Chip label="Mid" selected={importance === 2} onPress={() => setImportance(2)} />
-            <Chip label="High" selected={importance === 3} onPress={() => setImportance(3)} />
+            <Chip label="低" selected={importance === 1} onPress={() => setImportance(1)} />
+            <Chip label="中" selected={importance === 2} onPress={() => setImportance(2)} />
+            <Chip label="高" selected={importance === 3} onPress={() => setImportance(3)} />
           </View>
 
           <Text style={{ fontWeight: "800", marginBottom: 6, color: "#111" }}>タイトル</Text>
@@ -354,7 +360,7 @@ export default function AddScreen() {
             onPress={onSave}
             style={{
               marginTop: 14,
-              backgroundColor: "#ff8a3d",
+              backgroundColor: AppColors.primaryDark,
               paddingVertical: 14,
               borderRadius: 14,
               alignItems: "center",
@@ -364,7 +370,7 @@ export default function AddScreen() {
           </Pressable>
 
           {toast ? (
-            <Text style={{ marginTop: 10, color: "#ff8a3d", fontWeight: "800" }}>
+            <Text style={{ marginTop: 10, color: AppColors.primaryDark, fontWeight: "800" }}>
               {toast}
             </Text>
           ) : null}

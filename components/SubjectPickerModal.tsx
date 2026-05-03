@@ -6,12 +6,14 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { addSubject, deleteSubject, getSubjects, renameSubject } from "../lib/db";
+import { AppColors } from "../constants/app-theme";
 
 export type Subject = string;
 
@@ -195,16 +197,17 @@ export function SubjectPickerModal({
 
       {/* 下から展開 */}
       <Modal visible={open} transparent animationType="slide">
-        <Pressable
-          onPress={() => setOpen(false)}
-          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.25)" }}
-        />
+        <View style={{ flex: 1, justifyContent: "flex-end" }}>
+          <Pressable
+            onPress={() => setOpen(false)}
+            style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.25)" }}
+          />
 
-        {/* ★ここがキーボード回避の本体 */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-        >
+          {/* ★ここがキーボード回避の本体 */}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={0}
+          >
           <View
             style={{
               backgroundColor: "#fff",
@@ -277,7 +280,7 @@ export function SubjectPickerModal({
     borderColor: "#ddd",
   }}
 >
-  <Text style={{ fontWeight: "900", color: "#ff8a3d" }}>完了</Text>
+  <Text style={{ fontWeight: "900", color: AppColors.primaryDark }}>完了</Text>
 </Pressable>
 
                 </View>
@@ -329,7 +332,7 @@ export function SubjectPickerModal({
                     onPress={onAdd}
                     style={{
                       marginTop: 10,
-                      backgroundColor: "#ff8a3d",
+                      backgroundColor: AppColors.primaryDark,
                       paddingVertical: 12,
                       borderRadius: 12,
                       alignItems: "center",
@@ -373,7 +376,7 @@ export function SubjectPickerModal({
                     onPress={onRename}
                     style={{
                       marginTop: 10,
-                      backgroundColor: "#ff8a3d",
+                      backgroundColor: AppColors.primaryDark,
                       paddingVertical: 12,
                       borderRadius: 12,
                       alignItems: "center",
@@ -387,13 +390,13 @@ export function SubjectPickerModal({
                     style={{
                       marginTop: 10,
                       borderWidth: 1,
-                      borderColor: "#ff8a3d",
+                      borderColor: AppColors.primaryDark,
                       paddingVertical: 12,
                       borderRadius: 12,
                       alignItems: "center",
                     }}
                   >
-                    <Text style={{ color: "#ff8a3d", fontWeight: "900" }}>
+                    <Text style={{ color: AppColors.primaryDark, fontWeight: "900" }}>
                       この科目を削除
                     </Text>
                   </Pressable>
@@ -410,7 +413,8 @@ export function SubjectPickerModal({
               )}
             </ScrollView>
           </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
     </>
   );

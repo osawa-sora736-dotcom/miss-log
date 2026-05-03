@@ -4,6 +4,7 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 // ✅ 最新のSDK対応
 import * as FileSystem from "expo-file-system/legacy";
 import { createZipBackup, restoreFromZipBackup } from "../../lib/backup";
+import { AppColors } from "../../constants/app-theme";
 
 export default function SettingsScreen() {
   const [busy, setBusy] = useState(false);
@@ -112,7 +113,7 @@ export default function SettingsScreen() {
               disabled={busy}
               style={{
                 flex: 1,
-                backgroundColor: busy ? "#cfcfcf" : "#ff8a3d",
+                backgroundColor: busy ? "#cfcfcf" : AppColors.primaryDark,
                 paddingVertical: 12,
                 borderRadius: 14,
                 alignItems: "center",
@@ -225,7 +226,7 @@ export default function SettingsScreen() {
         </View>
 
         {toast ? (
-          <Text style={{ marginTop: 14, color: "#ff8a3d", fontWeight: "900" }}>
+          <Text style={{ marginTop: 14, color: AppColors.primaryDark, fontWeight: "900" }}>
             {toast}
           </Text>
         ) : null}

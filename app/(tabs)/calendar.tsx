@@ -1,6 +1,6 @@
 // app/(tabs)/calendar.tsx
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Keyboard,
@@ -14,6 +14,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { useScrollToTop } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 // ✅ 最新SDK対応
@@ -27,6 +28,7 @@ import {
 } from "../../lib/db";
 import { SubjectPickerModal, Subject } from "../../components/SubjectPickerModal";
 import { PhotoGallery } from "../_components/PhotoGallery";
+import { AppColors, importanceLabel } from "../../constants/app-theme";
 
 // === 便利関数 & 定数 ===
 const WEEK = ["日", "月", "火", "水", "木", "金", "土"] as const;
@@ -52,9 +54,9 @@ function formatDateTime(d: Date) {
 }
 
 const importanceMeta = (v: number) => {
-  if (v === 3) return { label: "High", bg: "#ff4d4f", w: 3 };
-  if (v === 2) return { label: "Mid", bg: "#ff8a3d", w: 2 };
-  return { label: "Low", bg: "#9aa0a6", w: 1 };
+  if (v === 3) return { label: importanceLabel(v), bg: AppColors.danger, w: 3 };
+  if (v === 2) return { label: importanceLabel(v), bg: AppColors.primaryDark, w: 2 };
+  return { label: importanceLabel(v), bg: AppColors.muted, w: 1 };
 };
 
 function addMonths(base: Date, diff: number) {
@@ -112,7 +114,7 @@ const Chip = ({
       paddingVertical: 8,
       paddingHorizontal: 12,
       borderRadius: 14,
-      backgroundColor: selected ? "#ff8a3d" : "#f2f2f2",
+      backgroundColor: selected ? AppColors.primaryDark : "#f2f2f2",
       marginRight: 8,
     }}
   >
@@ -138,6 +140,9 @@ const genFileName = (srcUri: string) => {
 };
 
 export default function CalendarScreen() {
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
   const params = useLocalSearchParams<{ focus?: string }>();
 
   const [rows, setRows] = useState<MistakeRow[]>([]);
@@ -333,9 +338,9 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
 
   return (
     <>
-      <ScrollView contentContainerStyle={{ paddingBottom: 36, backgroundColor: "#fff" }}>
+      <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: 36, backgroundColor: "#fff" }}>
         {/* ヘッダー */}
-        <View style={{ backgroundColor: "#ff8a3d", paddingTop: 12, paddingBottom: 12, paddingHorizontal: 12 }}>
+        <View style={{ backgroundColor: AppColors.primaryDark, paddingTop: 12, paddingBottom: 12, paddingHorizontal: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
             <Pressable onPress={onPrevMonth} style={{ padding: 10 }}>
               <Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>◀︎</Text>
@@ -380,7 +385,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
             const isSelected = k === selectedKey;
 
             const alpha = alphaFromScore(score, maxScoreInMonth);
-            const heatBg = alpha > 0 ? `rgba(255, 138, 61, ${alpha})` : "#fff";
+            const heatBg = alpha > 0 ? `rgba(56, 189, 248, ${alpha})` : "#fff";
 
             return (
               <Pressable
@@ -392,15 +397,15 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
                   borderRightColor: "#eee",
                   borderBottomWidth: 1,
                   borderBottomColor: "#eee",
-                  padding: 6,
-                  height: 62,
-                  backgroundColor: isSelected ? "#fff3ea" : heatBg,
+                  padding: 4,
+                  height: 48,
+                  backgroundColor: isSelected ? AppColors.primarySoft : heatBg,
                   opacity: inMonth ? 1 : 0.35,
                 }}
               >
                 <Text style={{ fontWeight: "900", color: "#222" }}>{d.getDate()}</Text>
                 {count > 0 ? (
-                  <View style={{ marginTop: 6, alignSelf: "flex-start", backgroundColor: "#ff8a3d", borderRadius: 10, paddingVertical: 2, paddingHorizontal: 8 }}>
+                  <View style={{ marginTop: 3, alignSelf: "flex-start", backgroundColor: AppColors.primaryDark, borderRadius: 10, paddingVertical: 1, paddingHorizontal: 7 }}>
                     <Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>{count}</Text>
                   </View>
                 ) : null}
@@ -426,7 +431,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
               borderStyle: "dashed",
             })}
           >
-            <Text style={{ fontWeight: "900", color: "#ff8a3d", fontSize: 16 }}>
+            <Text style={{ fontWeight: "900", color: AppColors.primaryDark, fontSize: 16 }}>
               ＋ {selected.getMonth() + 1}/{selected.getDate()} にミスを追加
             </Text>
           </Pressable>
@@ -486,11 +491,11 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
           {/* ヘッダー部分 */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", padding: 16, borderBottomWidth: 1, borderColor: "#eee", alignItems: "center" }}>
             <Pressable onPress={() => setModalVisible(false)}>
-              <Text style={{ color: "#ff8a3d", fontWeight: "bold", fontSize: 16 }}>キャンセル</Text>
+              <Text style={{ color: AppColors.primaryDark, fontWeight: "bold", fontSize: 16 }}>キャンセル</Text>
             </Pressable>
             <Text style={{ fontWeight: "900", fontSize: 16 }}>ミスを追加</Text>
             <Pressable onPress={onSave}>
-              <Text style={{ color: "#ff8a3d", fontWeight: "bold", fontSize: 16 }}>保存</Text>
+              <Text style={{ color: AppColors.primaryDark, fontWeight: "bold", fontSize: 16 }}>保存</Text>
             </Pressable>
           </View>
 
@@ -542,7 +547,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
                   {[1, 2, 3].map((v) => (
                     <Chip
                       key={v}
-                      label={v === 1 ? "Low" : v === 2 ? "Mid" : "High"}
+                      label={importanceLabel(v)}
                       selected={importance === v}
                       onPress={() => setImportance(v as 1 | 2 | 3)}
                     />

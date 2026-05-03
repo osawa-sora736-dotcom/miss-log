@@ -1,6 +1,7 @@
 // app/(tabs)/_layout.tsx
 import { Tabs } from "expo-router";
 import { Text } from "react-native";
+import { AppColors } from "../../constants/app-theme";
 
 const TabIcon = ({
   label,
@@ -13,7 +14,7 @@ const TabIcon = ({
     style={{
       fontSize: 18,
       fontWeight: "900",
-      color: focused ? "#ff8a3d" : "#999",
+      color: focused ? AppColors.primaryDark : "#999",
     }}
   >
     {label}

@@ -2,6 +2,7 @@
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
 import { Animated, Easing, Pressable, Text, View } from "react-native";
+import { AppColors } from "../../constants/app-theme";
 
 function FloatingOrbs() {
   const a = useRef(new Animated.Value(0)).current;
@@ -38,7 +39,7 @@ function FloatingOrbs() {
           width: 220,
           height: 220,
           borderRadius: 110,
-          backgroundColor: "#ff8a3d",
+          backgroundColor: AppColors.primary,
           opacity: 0.08,
           transform: [{ translateY: t1 }],
         }}

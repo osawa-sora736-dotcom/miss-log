@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { Dimensions, Image, Pressable, ScrollView, Text, View } from "react-native";
 import ImageViewing from "react-native-image-viewing";
+import { AppColors } from "../../constants/app-theme";
 
 type PhotoItem = { uri: string };
 
@@ -119,7 +120,7 @@ export function PhotoGallery({
                 overflow: "hidden",
                 backgroundColor: "#f2f2f2",
                 borderWidth: isActive ? 2 : 0,
-                borderColor: isActive ? "#ff8a3d" : "transparent",
+                borderColor: isActive ? AppColors.primaryDark : "transparent",
               }}
             >
               <Image

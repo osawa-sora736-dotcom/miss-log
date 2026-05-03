@@ -30,6 +30,7 @@ import {
 } from "../../lib/db";
 import { SubjectPickerModal, Subject } from "../../components/SubjectPickerModal";
 import { PhotoGallery } from "../_components/PhotoGallery";
+import { AppColors, importanceLabel } from "../../constants/app-theme";
 
 // ❌ ImageViewing のインポートは不要です（PhotoGalleryに入っているため）
 
@@ -56,7 +57,7 @@ const Chip = ({
             ? "#ff4d4f"
             : "#ffe8e8"
           : selected
-          ? "#ff8a3d"
+          ? AppColors.primaryDark
           : "#f2f2f2",
       marginRight: 8,
     }}
@@ -307,7 +308,7 @@ export default function MistakeDetailScreen() {
           <Text style={{ fontWeight: "900", marginBottom: 6, color: "#111" }}>重要度</Text>
           <View style={{ flexDirection: "row", marginBottom: 14 }}>
             {[1, 2, 3].map((v) => (
-              <Chip key={v} label={v === 1 ? "Low" : v === 2 ? "Mid" : "High"} selected={importance === v} onPress={() => setImportance(v as 1|2|3)} />
+              <Chip key={v} label={importanceLabel(v)} selected={importance === v} onPress={() => setImportance(v as 1|2|3)} />
             ))}
           </View>
 
@@ -329,7 +330,7 @@ export default function MistakeDetailScreen() {
           
           {/* ❌ ここにあった ImageViewing や onPressImage は削除しました */}
 
-          <Pressable onPress={onSave} style={{ marginTop: 10, backgroundColor: "#ff8a3d", padding: 14, borderRadius: 14, alignItems: "center" }}>
+          <Pressable onPress={onSave} style={{ marginTop: 10, backgroundColor: AppColors.primaryDark, padding: 14, borderRadius: 14, alignItems: "center" }}>
             <Text style={{ color: "#fff", fontWeight: "900" }}>保存</Text>
           </Pressable>
 
@@ -337,7 +338,7 @@ export default function MistakeDetailScreen() {
             <Text style={{ color: "#fff", fontWeight: "900" }}>削除</Text>
           </Pressable>
 
-          {toast ? <Text style={{ marginTop: 10, color: "#ff8a3d", fontWeight: "900" }}>{toast}</Text> : null}
+          {toast ? <Text style={{ marginTop: 10, color: AppColors.primaryDark, fontWeight: "900" }}>{toast}</Text> : null}
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>

@@ -2,6 +2,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { MistakeRow, searchMistakes } from "../../lib/db";
+import { AppColors, importanceLabel } from "../../constants/app-theme";
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -13,9 +14,9 @@ const formatDate = (iso: string) => {
 };
 
 const importanceMeta = (v: number) => {
-  if (v === 3) return { label: "High", bg: "#ff4d4f" };
-  if (v === 2) return { label: "Mid", bg: "#ff8a3d" };
-  return { label: "Low", bg: "#9aa0a6" };
+  if (v === 3) return { label: importanceLabel(v), bg: AppColors.danger };
+  if (v === 2) return { label: importanceLabel(v), bg: AppColors.primaryDark };
+  return { label: importanceLabel(v), bg: AppColors.muted };
 };
 
 const startOfDay = (d: Date) =>

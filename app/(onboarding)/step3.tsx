@@ -9,6 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { AppColors } from "../../constants/app-theme";
 
 const ONBOARDING_KEY = "onboardingDone";
 
@@ -46,7 +47,7 @@ function FloatingOrbs() {
           width: 260,
           height: 260,
           borderRadius: 130,
-          backgroundColor: "#ff8a3d",
+          backgroundColor: AppColors.primaryDark,
           opacity: 0.09,
           transform: [{ translateY: t1 }],
         }}
