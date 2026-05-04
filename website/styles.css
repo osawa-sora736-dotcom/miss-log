@@ -170,7 +170,7 @@ h3 {
   --phone-gap: 22px;
   display: flex;
   justify-content: flex-start;
-  width: var(--phone-width);
+  width: min(520px, 92vw);
   margin: 0 auto;
   min-width: 0;
   overflow: hidden;
@@ -186,16 +186,8 @@ h3 {
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  animation: phone-slide 16s ease-in-out infinite;
-}
-
-.phone-carousel::-webkit-scrollbar {
-  display: none;
-}
-
-.phone-carousel:hover,
-.phone-carousel:focus-within {
-  animation-play-state: paused;
+  cursor: pointer;
+  transition: transform 700ms ease-in-out;
 }
 
 .phone {
@@ -207,6 +199,10 @@ h3 {
   background: #effaff;
   box-shadow: 0 22px 52px rgba(2, 132, 199, 0.16);
   scroll-snap-align: center;
+}
+
+.phone-carousel.is-resetting {
+  transition: none;
 }
 
 .phone-top {
@@ -224,33 +220,6 @@ h3 {
   border-radius: 24px;
   background: #fff;
   padding: 18px;
-}
-
-@keyframes phone-slide {
-  0%,
-  18% {
-    transform: translateX(0);
-  }
-
-  26%,
-  43% {
-    transform: translateX(calc(var(--phone-step) * -1));
-  }
-
-  51%,
-  68% {
-    transform: translateX(calc(var(--phone-step) * -2));
-  }
-
-  76%,
-  93% {
-    transform: translateX(calc(var(--phone-step) * -3));
-  }
-
-  93.01%,
-  100% {
-    transform: translateX(0);
-  }
 }
 
 .screen-head {
@@ -578,6 +547,10 @@ h3 {
     justify-content: space-between;
   }
 
+  .phone-stage {
+    width: var(--phone-width);
+  }
+
   .feature-grid {
     grid-template-columns: 1fr;
   }
@@ -595,6 +568,6 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   .phone-carousel {
-    animation: none;
+    transition-duration: 0ms;
   }
 }
