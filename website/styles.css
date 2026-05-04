@@ -543,8 +543,9 @@ h3 {
   }
 
   nav {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    gap: 18px;
+    justify-content: flex-start;
   }
 
   .phone-stage {
