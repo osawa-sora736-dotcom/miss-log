@@ -177,9 +177,9 @@ h3 {
   --phone-step: calc(var(--phone-width) + 22px);
   display: flex;
   gap: 22px;
-  width: min(520px, 92vw);
-  padding: 6px 24px 18px;
-  overflow-x: auto;
+  width: var(--phone-width);
+  padding: 6px 0 18px;
+  overflow: visible;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
