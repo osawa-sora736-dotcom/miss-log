@@ -187,6 +187,7 @@ h3 {
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   cursor: pointer;
+  touch-action: pan-y;
   transition: transform 700ms ease-in-out;
 }
 
