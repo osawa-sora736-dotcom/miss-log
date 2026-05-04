@@ -1,5 +1,5 @@
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { MistakeRow, searchMistakes } from "../../lib/db";
 import { AppColors, importanceLabel } from "../../constants/app-theme";
@@ -28,9 +28,10 @@ const addDays = (d: Date, days: number) => {
   return x;
 };
 
-type RangeSpec = { title: string; desc?: string; from: string; to: string };
+type RangeSpec = { title: string; desc?: string; from?: string; to?: string };
 
 function makeRanges(now = new Date()): {
+  randomToday: RangeSpec;
   yesterday: RangeSpec;
   weekAgo: RangeSpec;
   monthAgo: RangeSpec;
@@ -50,6 +51,10 @@ function makeRanges(now = new Date()): {
   const mTo = addDays(today0, -28);
 
   return {
+    randomToday: {
+      title: "今日のランダム復習",
+      desc: "毎日0時に更新・3件",
+    },
     yesterday: {
       title: "昨日のミス",
       desc: undefined, // ← サブ文なし
@@ -71,18 +76,51 @@ function makeRanges(now = new Date()): {
   };
 }
 
+const daySeed = (d = new Date()) =>
+  `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+
+const hashString = (value: string) => {
+  let hash = 2166136261;
+
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+};
+
+const pickDailyRandom = (rows: MistakeRow[], now = new Date()) => {
+  const seed = daySeed(now);
+
+  return [...rows]
+    .sort((a, b) => {
+      const aScore = hashString(`${seed}:${a.id}`);
+      const bScore = hashString(`${seed}:${b.id}`);
+      return aScore - bScore;
+    })
+    .slice(0, 3);
+};
+
+const msUntilNextDay = (now = new Date()) => {
+  const next = startOfDay(addDays(now, 1));
+  return next.getTime() - now.getTime();
+};
+
 function Section({
   spec,
   rows,
   expanded,
   onToggle,
+  previewCount = 1,
 }: {
   spec: RangeSpec;
   rows: MistakeRow[];
   expanded: boolean;
   onToggle: () => void;
+  previewCount?: number;
 }) {
-  const show = expanded ? rows : rows.slice(0, 1);
+  const show = expanded ? rows : rows.slice(0, previewCount);
 
   return (
     <View
@@ -114,7 +152,7 @@ function Section({
           ) : null}
         </View>
 
-        {rows.length > 1 ? (
+        {rows.length > previewCount ? (
           <Pressable
             onPress={onToggle}
             style={{
@@ -234,49 +272,60 @@ function Section({
 }
 
 export default function ReviewScreen() {
-  const ranges = useMemo(() => makeRanges(new Date()), []);
-  const [expanded, setExpanded] = useState<{ y: boolean; w: boolean; m: boolean }>({
+  const [ranges, setRanges] = useState(() => makeRanges(new Date()));
+  const [expanded, setExpanded] = useState<{ r: boolean; y: boolean; w: boolean; m: boolean }>({
+    r: true,
     y: false,
     w: false,
     m: false,
   });
 
+  const [rRows, setRRows] = useState<MistakeRow[]>([]);
   const [yRows, setYRows] = useState<MistakeRow[]>([]);
   const [wRows, setWRows] = useState<MistakeRow[]>([]);
   const [mRows, setMRows] = useState<MistakeRow[]>([]);
 
   const load = useCallback(() => {
+    const nextRanges = makeRanges(new Date());
+    setRanges(nextRanges);
+    setRRows(pickDailyRandom(searchMistakes({ sort: "date" })));
+
     // sort:"review" ＝ importance DESC → occurred_at ASC
     setYRows(
       searchMistakes({
-        from: ranges.yesterday.from,
-        to: ranges.yesterday.to,
+        from: nextRanges.yesterday.from,
+        to: nextRanges.yesterday.to,
         sort: "review",
       })
     );
 
     setWRows(
       searchMistakes({
-        from: ranges.weekAgo.from,
-        to: ranges.weekAgo.to,
+        from: nextRanges.weekAgo.from,
+        to: nextRanges.weekAgo.to,
         sort: "review",
       })
     );
 
     setMRows(
       searchMistakes({
-        from: ranges.monthAgo.from,
-        to: ranges.monthAgo.to,
+        from: nextRanges.monthAgo.from,
+        to: nextRanges.monthAgo.to,
         sort: "review",
       })
     );
-  }, [ranges]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       load();
     }, [load])
   );
+
+  useEffect(() => {
+    const timeoutId = setTimeout(load, msUntilNextDay(new Date()) + 1000);
+    return () => clearTimeout(timeoutId);
+  }, [load, ranges]);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -285,6 +334,14 @@ export default function ReviewScreen() {
         <Text style={{ marginTop: 4, fontSize: 12, color: "#777" }}>
           ミス度が高い順（同じなら古い順）で表示します。
         </Text>
+
+        <Section
+          spec={ranges.randomToday}
+          rows={rRows}
+          expanded={expanded.r}
+          previewCount={3}
+          onToggle={() => setExpanded((p) => ({ ...p, r: !p.r }))}
+        />
 
         <Section
           spec={ranges.yesterday}
