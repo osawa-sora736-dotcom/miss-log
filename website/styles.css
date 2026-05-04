@@ -166,24 +166,27 @@ h3 {
 }
 
 .phone-stage {
+  --phone-width: min(340px, calc(82vw - 48px));
+  --phone-gap: 22px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  width: var(--phone-width);
+  margin: 0 auto;
   min-width: 0;
   overflow: hidden;
 }
 
 .phone-carousel {
-  --phone-width: min(340px, calc(82vw - 48px));
-  --phone-step: calc(var(--phone-width) + 22px);
+  --phone-step: calc(var(--phone-width) + var(--phone-gap));
   display: flex;
-  gap: 22px;
+  gap: var(--phone-gap);
   width: var(--phone-width);
   padding: 6px 0 18px;
   overflow: visible;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  animation: phone-slide 12s ease-in-out infinite;
+  animation: phone-slide 16s ease-in-out infinite;
 }
 
 .phone-carousel::-webkit-scrollbar {
@@ -225,20 +228,26 @@ h3 {
 
 @keyframes phone-slide {
   0%,
-  24% {
+  18% {
     transform: translateX(0);
   }
 
-  34%,
-  58% {
+  26%,
+  43% {
     transform: translateX(calc(var(--phone-step) * -1));
   }
 
-  68%,
-  92% {
+  51%,
+  68% {
     transform: translateX(calc(var(--phone-step) * -2));
   }
 
+  76%,
+  93% {
+    transform: translateX(calc(var(--phone-step) * -3));
+  }
+
+  93.01%,
   100% {
     transform: translateX(0);
   }
