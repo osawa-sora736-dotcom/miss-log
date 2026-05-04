@@ -551,12 +551,65 @@ h3 {
     width: var(--phone-width);
   }
 
+  .section,
+  .audience-section,
+  .split-section,
+  .quote-section,
+  .cta-section {
+    padding: 52px 18px;
+  }
+
+  .section-title {
+    margin-bottom: 18px;
+  }
+
   .feature-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .feature-grid article {
+    min-height: auto;
+    padding: 14px;
+  }
+
+  .feature-icon {
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .feature-grid h3 {
+    font-size: 17px;
+    line-height: 1.25;
+  }
+
+  .feature-grid p {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .audience-card {
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .audience-card h3 {
+    font-size: 24px;
+  }
+
+  .audience-card ul {
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .split-section {
+    gap: 22px;
   }
 
   .steps li {
     grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 16px;
   }
 
   .site-footer,
