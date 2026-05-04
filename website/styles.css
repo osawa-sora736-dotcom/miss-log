@@ -168,16 +168,31 @@ h3 {
 .phone-stage {
   display: flex;
   justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.phone-carousel {
+  display: flex;
+  gap: 22px;
+  width: min(520px, 92vw);
+  padding: 6px 24px 18px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
 }
 
 .phone {
-  width: min(340px, 82vw);
+  flex: 0 0 min(340px, calc(82vw - 48px));
   aspect-ratio: 0.5;
   padding: 14px;
   border: 10px solid #0f172a;
   border-radius: 42px;
   background: #0f172a;
   box-shadow: var(--shadow);
+  scroll-snap-align: center;
 }
 
 .phone-top {
@@ -259,6 +274,43 @@ h3 {
 
 .mistake-card.pale {
   background: var(--primary-soft);
+}
+
+.mistake-card.compact {
+  padding: 12px;
+}
+
+.form-preview,
+.list-preview {
+  display: grid;
+  gap: 12px;
+}
+
+.form-preview label {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.form-preview span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.form-preview strong {
+  color: #0f172a;
+}
+
+.form-preview .image-preview {
+  min-height: 118px;
+  align-content: end;
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(56, 189, 248, 0.08)),
+    #fff;
 }
 
 .section,
