@@ -194,9 +194,9 @@ h3 {
   flex: 0 0 var(--phone-width);
   aspect-ratio: 0.5;
   padding: 8px;
-  border: 1px solid var(--line);
+  border: 6px solid #0f172a;
   border-radius: 34px;
-  background: var(--bg);
+  background: #0f172a;
   scroll-snap-align: center;
 }
 
