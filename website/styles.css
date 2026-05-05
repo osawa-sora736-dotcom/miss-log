@@ -424,10 +424,12 @@ h3 {
 .steps strong {
   padding-bottom: 12px;
   border-bottom: 0;
-  background-image: radial-gradient(circle, var(--primary) 0 4px, transparent 4.5px);
-  background-repeat: repeat-x;
-  background-size: 28px 8px;
-  background-position: left bottom;
+  background-image:
+    linear-gradient(var(--primary), var(--primary)),
+    radial-gradient(circle, var(--primary) 0 4px, transparent 4.5px);
+  background-repeat: no-repeat, repeat-x;
+  background-size: 100% 1px, 28px 8px;
+  background-position: left calc(100% - 4px), left bottom;
 }
 
 .feature-icon {
