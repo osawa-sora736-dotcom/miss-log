@@ -79,7 +79,11 @@ export async function createZipBackup(photosDir: string): Promise<void> {
   }
 
   // 3) ZIP生成
-  const zipBase64: string = await zip.generateAsync({ type: "base64" });
+  const zipBase64: string = await zip.generateAsync({
+    type: "base64",
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 },
+  });
 
   const cacheDir = (FileSystem as any).cacheDirectory ?? (FileSystem as any).documentDirectory ?? "";
   if (!cacheDir) throw new Error("一時保存先が見つかりません (cacheDir is empty)");

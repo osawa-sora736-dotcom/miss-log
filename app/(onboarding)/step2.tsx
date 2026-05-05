@@ -1,199 +1,83 @@
-import { router } from "expo-router";
-import { useEffect, useRef } from "react";
-import { Animated, Easing, Pressable, Text, View } from "react-native";
+﻿import { router } from "expo-router";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AppColors } from "../../constants/app-theme";
 
-function FloatingOrbs() {
-  const a = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(a, {
-          toValue: 1,
-          duration: 2200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(a, {
-          toValue: 0,
-          duration: 2200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [a]);
-
-  const t1 = a.interpolate({ inputRange: [0, 1], outputRange: [0, -10] });
-  const t2 = a.interpolate({ inputRange: [0, 1], outputRange: [0, 12] });
-
+function Feature({ title, body }: { title: string; body: string }) {
   return (
-    <View style={{ position: "absolute", inset: 0 }}>
-      <Animated.View
-        style={{
-          position: "absolute",
-          top: 80,
-          right: -50,
-          width: 240,
-          height: 240,
-          borderRadius: 120,
-          backgroundColor: AppColors.primaryDark,
-          opacity: 0.08,
-          transform: [{ translateY: t1 }],
-        }}
-      />
-      <Animated.View
-        style={{
-          position: "absolute",
-          bottom: 160,
-          left: -70,
-          width: 280,
-          height: 280,
-          borderRadius: 140,
-          backgroundColor: "#111",
-          opacity: 0.05,
-          transform: [{ translateY: t2 }],
-        }}
-      />
-    </View>
-  );
-}
-
-function Card({
-  title,
-  body,
-  delayMs,
-}: {
-  title: string;
-  body: string;
-  delayMs: number;
-}) {
-  const v = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(v, {
-      toValue: 1,
-      duration: 520,
-      delay: delayMs,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [v, delayMs]);
-
-  const opacity = v;
-  const rise = v.interpolate({ inputRange: [0, 1], outputRange: [14, 0] });
-
-  return (
-    <Animated.View
+    <View
       style={{
-        opacity,
-        transform: [{ translateY: rise }],
-        marginTop: 12,
-        padding: 16,
-        borderRadius: 20,
-        backgroundColor: "#f6f6f6",
-        borderWidth: 1,
-        borderColor: "#eee",
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 14,
-        shadowOffset: { width: 0, height: 8 },
-        elevation: 2,
-      }}
-    >
-      <Text style={{ fontSize: 14, fontWeight: "900", color: "#111" }}>{title}</Text>
-      <Text style={{ marginTop: 8, fontSize: 14, color: "#333", lineHeight: 22 }}>{body}</Text>
-    </Animated.View>
-  );
-}
-
-function GhostButton({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        paddingVertical: 14,
+        padding: 15,
         borderRadius: 18,
-        backgroundColor: "#e9e9e9",
-        alignItems: "center",
+        backgroundColor: "#F8FAFC",
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
       }}
     >
-      <Text style={{ color: "#111", fontWeight: "900", fontSize: 16 }}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function PrimaryButton({ label, onPress }: { label: string; onPress: () => void }) {
-  const s = useRef(new Animated.Value(1)).current;
-  const onPressIn = () =>
-    Animated.timing(s, { toValue: 0.98, duration: 80, useNativeDriver: true }).start();
-  const onPressOut = () =>
-    Animated.timing(s, { toValue: 1, duration: 120, useNativeDriver: true }).start();
-
-  return (
-    <Animated.View style={{ transform: [{ scale: s }] }}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        style={{
-          paddingVertical: 14,
-          borderRadius: 18,
-          backgroundColor: "#111",
-          alignItems: "center",
-          shadowColor: "#000",
-          shadowOpacity: 0.12,
-          shadowRadius: 14,
-          shadowOffset: { width: 0, height: 8 },
-          elevation: 3,
-        }}
-      >
-        <Text style={{ color: "#fff", fontWeight: "900", fontSize: 16 }}>{label}</Text>
-      </Pressable>
-    </Animated.View>
+      <Text style={{ fontSize: 15, fontWeight: "700", color: "#0F172A" }}>{title}</Text>
+      <Text style={{ marginTop: 7, fontSize: 13, lineHeight: 21, color: "#475569" }}>
+        {body}
+      </Text>
+    </View>
   );
 }
 
 export default function Onboarding2() {
-  const enter = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(enter, {
-      toValue: 1,
-      duration: 520,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [enter]);
-
-  const opacity = enter;
-  const rise = enter.interpolate({ inputRange: [0, 1], outputRange: [16, 0] });
-
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <FloatingOrbs />
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 22, paddingBottom: 28 }}>
+        <View style={{ flex: 1, justifyContent: "space-between" }}>
+          <View>
+            <Text style={{ fontSize: 26, lineHeight: 34, fontWeight: "700", color: "#0F172A" }}>
+              記録は、あなたの強みになる。
+            </Text>
+            <Text style={{ marginTop: 12, fontSize: 15, lineHeight: 25, color: "#334155" }}>
+              受験でも仕事でも、伸びる人は「次にどうするか」を残しています。
+            </Text>
 
-      <View style={{ flex: 1, padding: 22, justifyContent: "space-between" }}>
-        <Animated.View style={{ opacity, transform: [{ translateY: rise }] }}>
-          <Text style={{ fontSize: 24, fontWeight: "900", color: "#111" }}>
-            使い方は、これだけ
-          </Text>
-          <Text style={{ marginTop: 8, fontSize: 13, color: "#666" }}>
-            1分でミスの記録ができる
-          </Text>
+            <View style={{ marginTop: 22, gap: 10 }}>
+              <Feature
+                title="ミスを1分で記録"
+                body="タイトル、科目、重要度、写真を残して、あとで思い出しやすくします。"
+              />
+              <Feature
+                title="復習で忘れにくく"
+                body="昨日・1週間前・先月・ランダムのミスを見返して、同じ失敗を減らします。"
+              />
+              <Feature
+                title="印刷して持ち歩ける"
+                body="大事なミスだけを絞り込んで、試験前や仕事前の見返し用にできます。"
+              />
+            </View>
+          </View>
 
-          <Card title="① 追加タブ" body="解けなかった問題、間違えた理由を記録" delayMs={80} />
-          <Card title="② カレンダータブ、復習タブ" body="定期的にミスを思い出そう" delayMs={160} />
-          <Card title="③ 一覧タブ" body="自分のしたミスを、一覧で学習" delayMs={240} />
-
-          <Text style={{ marginTop: 16, fontSize: 15, fontWeight: "900", color: "#111" }}>
-            ミスを記録、蓄積して武器にしよう。
-          </Text>
-        </Animated.View>
-
-        <View style={{ gap: 10 }}>
-          <GhostButton label="戻る" onPress={() => router.back()} />
-          <PrimaryButton label="次へ" onPress={() => router.push("/(onboarding)/step3")} />
+          <View style={{ marginTop: 24, gap: 10 }}>
+            <Pressable
+              onPress={() => router.back()}
+              style={{
+                paddingVertical: 14,
+                borderRadius: 16,
+                backgroundColor: "#F1F5F9",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#0F172A", fontWeight: "700" }}>戻る</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/(onboarding)/step3")}
+              style={{
+                paddingVertical: 15,
+                borderRadius: 16,
+                backgroundColor: AppColors.primaryDark,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>次へ</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
+

@@ -28,6 +28,7 @@ import {
   updateMistake,
   deleteMistakePhoto,
 } from "../../lib/db";
+import { ensureDir, saveOptimizedPhotos } from "../../lib/photos";
 import { SubjectPickerModal, Subject } from "../../components/SubjectPickerModal";
 import { PhotoGallery } from "../_components/PhotoGallery";
 import { AppColors, importanceLabel } from "../../constants/app-theme";
@@ -90,27 +91,13 @@ const formatDate = (d: Date) => {
 
 type PickedPhoto = { uri: string };
 
-const ensureDir = async (dirUri: string) => {
-  const info = await FileSystem.getInfoAsync(dirUri);
-  if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(dirUri, { intermediates: true });
-  }
-};
-
-const genFileName = (srcUri: string) => {
-  const ext = (() => {
-    const m = srcUri.match(/\.([a-zA-Z0-9]+)(\?|#|$)/);
-    return m?.[1]?.toLowerCase() ?? "jpg";
-  })();
-  return `${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
-};
-
 export default function MistakeDetailScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const mistakeId = useMemo(() => Number(params.id), [params.id]);
 
   const [loaded, setLoaded] = useState(false);
   const [row, setRow] = useState<MistakeRow | null>(null);
+  const [editing, setEditing] = useState(false);
 
   const [occurredAt, setOccurredAt] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
@@ -178,7 +165,8 @@ export default function MistakeDetailScreen() {
 
     Keyboard.dismiss();
     showToast("保存しました");
-    setTimeout(() => router.back(), 150);
+    setEditing(false);
+    reload();
   }; // ✅ ここに閉じカッコ「}」が抜けていました！
 
   // ✅ 追加ロジック
@@ -193,7 +181,7 @@ export default function MistakeDetailScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       selectionLimit: 0,
-      quality: 1,
+      quality: 0.75,
     });
 
     if (result.canceled) return;
@@ -206,14 +194,7 @@ export default function MistakeDetailScreen() {
 
     try {
       await ensureDir(photosDir);
-
-      const savedUris: string[] = [];
-      for (const p of picked) {
-        const fileName = genFileName(p.uri);
-        const dest = `${photosDir}${fileName}`;
-        await FileSystem.copyAsync({ from: p.uri, to: dest });
-        savedUris.push(dest);
-      }
+      const savedUris = await saveOptimizedPhotos(picked.map((p) => p.uri), photosDir);
 
       if (savedUris.length > 0) {
         await insertMistakePhotos(mistakeId, savedUris);
@@ -283,10 +264,133 @@ export default function MistakeDetailScreen() {
   if (!row) {
     return (
       <View style={{ flex: 1, backgroundColor: "#fff", padding: 16 }}>
-        <Text style={{ fontSize: 18, fontWeight: "900", color: "#111" }}>見つかりません</Text>
+        <Text style={{ fontSize: 18, fontWeight: "700", color: "#111" }}>見つかりません</Text>
         <Pressable onPress={() => router.back()} style={{ marginTop: 16, backgroundColor: "#111", padding: 12, borderRadius: 12, alignItems: "center" }}>
-          <Text style={{ color: "#fff", fontWeight: "900" }}>戻る</Text>
+          <Text style={{ color: "#fff", fontWeight: "700" }}>戻る</Text>
         </Pressable>
+      </View>
+    );
+  }
+
+  const metaColor =
+    importance === 3 ? AppColors.danger : importance === 2 ? AppColors.primaryDark : AppColors.muted;
+
+  if (!editing) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#fff" }}>
+        <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 40 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+              marginBottom: 14,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                borderRadius: 999,
+                backgroundColor: AppColors.primarySoft,
+                color: AppColors.primaryDark,
+                fontSize: 12,
+                fontWeight: "600",
+              }}
+            >
+              {formatDate(occurredAt)}
+            </Text>
+            <Text
+              style={{
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                borderRadius: 999,
+                backgroundColor: "#F1F5F9",
+                color: "#475569",
+                fontSize: 12,
+                fontWeight: "600",
+              }}
+            >
+              {subject}
+            </Text>
+            <Text
+              style={{
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                borderRadius: 999,
+                backgroundColor: "#F8FAFC",
+                color: metaColor,
+                fontSize: 12,
+                fontWeight: "600",
+              }}
+            >
+              重要度 {importanceLabel(importance)}
+            </Text>
+          </View>
+
+          <Text style={{ fontSize: 24, lineHeight: 32, fontWeight: "700", color: "#0F172A" }}>
+            {title}
+          </Text>
+
+          <Text style={{ marginTop: 18, fontSize: 16, lineHeight: 28, color: "#1F2937" }}>
+            {body}
+          </Text>
+
+          <View style={{ marginTop: 22 }}>
+            {photos.length > 0 ? (
+              <PhotoGallery
+                photos={photos.map((p) => ({ uri: p.uri }))}
+                onPressAdd={pickPhotos}
+                onRemoveAt={removePhotoAt}
+                mainAspectRatio={1}
+              />
+            ) : (
+              <Pressable
+                onPress={pickPhotos}
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  backgroundColor: "#0F172A",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ color: "#fff", fontSize: 24, lineHeight: 26 }}>+</Text>
+              </Pressable>
+            )}
+          </View>
+
+          <View style={{ flexDirection: "row", gap: 10, marginTop: 18 }}>
+            <Pressable
+              onPress={() => setEditing(true)}
+              style={{
+                flex: 1,
+                backgroundColor: AppColors.primaryDark,
+                padding: 14,
+                borderRadius: 14,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "700" }}>編集</Text>
+            </Pressable>
+            <Pressable
+              onPress={onDelete}
+              style={{
+                width: 88,
+                backgroundColor: "#FEE2E2",
+                padding: 14,
+                borderRadius: 14,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#B91C1C", fontWeight: "700" }}>削除</Text>
+            </Pressable>
+          </View>
+
+          {toast ? <Text style={{ marginTop: 10, color: AppColors.primaryDark, fontWeight: "700" }}>{toast}</Text> : null}
+        </ScrollView>
       </View>
     );
   }
@@ -296,29 +400,29 @@ export default function MistakeDetailScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
           
-          <Text style={{ fontWeight: "900", marginBottom: 6, marginTop: 14, color: "#111" }}>日時</Text>
+          <Text style={{ fontWeight: "600", marginBottom: 6, marginTop: 14, color: "#111" }}>日時</Text>
           <Pressable onPress={() => setShowPicker(true)} style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 12, padding: 12, marginBottom: 14 }}>
-            <Text style={{ fontWeight: "900", color: "#111" }}>{formatDate(occurredAt)}</Text>
+            <Text style={{ fontWeight: "600", color: "#111" }}>{formatDate(occurredAt)}</Text>
           </Pressable>
           {showPicker && <DateTimePicker value={occurredAt} mode="datetime" display="spinner" locale="ja-JP" onChange={(_, d) => { setShowPicker(false); if (d) setOccurredAt(d); }} />}
 
-          <Text style={{ fontWeight: "900", marginBottom: 6, color: "#111" }}>科目</Text>
+          <Text style={{ fontWeight: "600", marginBottom: 6, color: "#111" }}>科目</Text>
           <SubjectPickerModal value={subject} onChange={setSubject} />
 
-          <Text style={{ fontWeight: "900", marginBottom: 6, color: "#111" }}>重要度</Text>
+          <Text style={{ fontWeight: "600", marginBottom: 6, color: "#111" }}>重要度</Text>
           <View style={{ flexDirection: "row", marginBottom: 14 }}>
             {[1, 2, 3].map((v) => (
               <Chip key={v} label={importanceLabel(v)} selected={importance === v} onPress={() => setImportance(v as 1|2|3)} />
             ))}
           </View>
 
-          <Text style={{ fontWeight: "900", marginBottom: 6, color: "#111" }}>タイトル</Text>
+          <Text style={{ fontWeight: "600", marginBottom: 6, color: "#111" }}>タイトル</Text>
           <TextInput value={title} onChangeText={setTitle} style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 12, padding: 12, marginBottom: 14, color: "#111" }} />
 
-          <Text style={{ fontWeight: "900", marginBottom: 6, color: "#111" }}>内容</Text>
+          <Text style={{ fontWeight: "600", marginBottom: 6, color: "#111" }}>内容</Text>
           <TextInput value={body} onChangeText={setBody} multiline style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 12, padding: 12, minHeight: 140, textAlignVertical: "top", color: "#111" }} />
 
-          <Text style={{ fontWeight: "900", marginBottom: 6, marginTop: 14, color: "#111" }}>写真</Text>
+          <Text style={{ fontWeight: "600", marginBottom: 6, marginTop: 14, color: "#111" }}>写真</Text>
           
           {/* ✅ PhotoGalleryにImageViewing機能が内蔵されているので、これだけでOKです */}
           <PhotoGallery
@@ -331,14 +435,14 @@ export default function MistakeDetailScreen() {
           {/* ❌ ここにあった ImageViewing や onPressImage は削除しました */}
 
           <Pressable onPress={onSave} style={{ marginTop: 10, backgroundColor: AppColors.primaryDark, padding: 14, borderRadius: 14, alignItems: "center" }}>
-            <Text style={{ color: "#fff", fontWeight: "900" }}>保存</Text>
+            <Text style={{ color: "#fff", fontWeight: "700" }}>保存</Text>
           </Pressable>
 
           <Pressable onPress={onDelete} style={{ marginTop: 12, backgroundColor: "#ff4d4f", padding: 14, borderRadius: 14, alignItems: "center" }}>
-            <Text style={{ color: "#fff", fontWeight: "900" }}>削除</Text>
+            <Text style={{ color: "#fff", fontWeight: "700" }}>削除</Text>
           </Pressable>
 
-          {toast ? <Text style={{ marginTop: 10, color: AppColors.primaryDark, fontWeight: "900" }}>{toast}</Text> : null}
+          {toast ? <Text style={{ marginTop: 10, color: AppColors.primaryDark, fontWeight: "700" }}>{toast}</Text> : null}
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>

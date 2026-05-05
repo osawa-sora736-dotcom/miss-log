@@ -1,4 +1,4 @@
-// app/(tabs)/calendar.tsx
+﻿// app/(tabs)/calendar.tsx
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -26,6 +26,7 @@ import {
   insertMistake,
   insertMistakePhotos,
 } from "../../lib/db";
+import { saveOptimizedPhotos } from "../../lib/photos";
 import { SubjectPickerModal, Subject } from "../../components/SubjectPickerModal";
 import { PhotoGallery } from "../_components/PhotoGallery";
 import { AppColors, importanceLabel } from "../../constants/app-theme";
@@ -123,21 +124,6 @@ const Chip = ({
     </Text>
   </Pressable>
 );
-
-const ensureDir = async (dirUri: string) => {
-  const info = await FileSystem.getInfoAsync(dirUri);
-  if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(dirUri, { intermediates: true });
-  }
-};
-
-const genFileName = (srcUri: string) => {
-  const ext = (() => {
-    const m = srcUri.match(/\.([a-zA-Z0-9]+)(\?|#|$)/);
-    return m?.[1]?.toLowerCase() ?? "jpg";
-  })();
-  return `${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
-};
 
 export default function CalendarScreen() {
   const scrollRef = useRef<ScrollView>(null);
@@ -284,7 +270,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       selectionLimit: 0,
-      quality: 1,
+      quality: 0.75,
     });
     if (!result.canceled) {
       const uris = result.assets.map((a) => ({ uri: a.uri }));
@@ -315,14 +301,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
       const photoUris = photos.map((p) => p.uri);
       if (photoUris.length > 0) {
         if (photosDir) {
-          await ensureDir(photosDir);
-          const finalUris = [];
-          for (const uri of photoUris) {
-            const fileName = genFileName(uri);
-            const dest = `${photosDir}${fileName}`;
-            await FileSystem.copyAsync({ from: uri, to: dest });
-            finalUris.push(dest);
-          }
+          const finalUris = await saveOptimizedPhotos(photoUris, photosDir);
           await insertMistakePhotos(mistakeId, finalUris);
         }
       }
@@ -343,13 +322,13 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
         <View style={{ backgroundColor: AppColors.primaryDark, paddingTop: 12, paddingBottom: 12, paddingHorizontal: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
             <Pressable onPress={onPrevMonth} style={{ padding: 10 }}>
-              <Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>◀︎</Text>
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 18 }}>◀︎</Text>
             </Pressable>
-            <Text style={{ color: "#fff", fontWeight: "900", fontSize: 20, marginHorizontal: 14 }}>
+            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 20, marginHorizontal: 14 }}>
               {formatHeaderMonth(month)}
             </Text>
             <Pressable onPress={onNextMonth} style={{ padding: 10 }}>
-              <Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>▶︎</Text>
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 18 }}>▶︎</Text>
             </Pressable>
           </View>
         </View>
@@ -368,7 +347,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
                 borderRightColor: "#eee",
               }}
             >
-              <Text style={{ fontWeight: "800", color: i === 0 ? "#d44" : i === 6 ? "#46f" : "#444" }}>
+              <Text style={{ fontWeight: "600", color: i === 0 ? "#d44" : i === 6 ? "#46f" : "#444" }}>
                 {w}
               </Text>
             </View>
@@ -403,10 +382,10 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
                   opacity: inMonth ? 1 : 0.35,
                 }}
               >
-                <Text style={{ fontWeight: "900", color: "#222" }}>{d.getDate()}</Text>
+                <Text style={{ fontWeight: "700", color: "#222" }}>{d.getDate()}</Text>
                 {count > 0 ? (
                   <View style={{ marginTop: 3, alignSelf: "flex-start", backgroundColor: AppColors.primaryDark, borderRadius: 10, paddingVertical: 1, paddingHorizontal: 7 }}>
-                    <Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>{count}</Text>
+                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>{count}</Text>
                   </View>
                 ) : null}
               </Pressable>
@@ -431,12 +410,12 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
               borderStyle: "dashed",
             })}
           >
-            <Text style={{ fontWeight: "900", color: AppColors.primaryDark, fontSize: 16 }}>
+            <Text style={{ fontWeight: "700", color: AppColors.primaryDark, fontSize: 16 }}>
               ＋ {selected.getMonth() + 1}/{selected.getDate()} にミスを追加
             </Text>
           </Pressable>
 
-          <Text style={{ fontSize: 14, fontWeight: "900", marginBottom: 8 }}>
+          <Text style={{ fontSize: 14, fontWeight: "700", marginBottom: 8 }}>
             {selected.getMonth() + 1}/{selected.getDate()} の記録
           </Text>
 
@@ -460,9 +439,9 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
                   >
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
                       <View style={{ backgroundColor: meta.bg, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, marginRight: 10 }}>
-                        <Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>{meta.label}</Text>
+                        <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>{meta.label}</Text>
                       </View>
-                      <Text style={{ fontSize: 15, fontWeight: "900", flexShrink: 1, color: "#111" }}>{r.title}</Text>
+                      <Text style={{ fontSize: 15, fontWeight: "700", flexShrink: 1, color: "#111" }}>{r.title}</Text>
                     </View>
                     <Text style={{ marginTop: 6, fontSize: 12, color: "#666" }}>
                       {r.subject} / {formatDateTime(new Date(r.occurred_at))}
@@ -491,11 +470,11 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
           {/* ヘッダー部分 */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", padding: 16, borderBottomWidth: 1, borderColor: "#eee", alignItems: "center" }}>
             <Pressable onPress={() => setModalVisible(false)}>
-              <Text style={{ color: AppColors.primaryDark, fontWeight: "bold", fontSize: 16 }}>キャンセル</Text>
+              <Text style={{ color: AppColors.primaryDark, fontWeight: "600", fontSize: 16 }}>キャンセル</Text>
             </Pressable>
-            <Text style={{ fontWeight: "900", fontSize: 16 }}>ミスを追加</Text>
+            <Text style={{ fontWeight: "700", fontSize: 16 }}>ミスを追加</Text>
             <Pressable onPress={onSave}>
-              <Text style={{ color: AppColors.primaryDark, fontWeight: "bold", fontSize: 16 }}>保存</Text>
+              <Text style={{ color: AppColors.primaryDark, fontWeight: "600", fontSize: 16 }}>保存</Text>
             </Pressable>
           </View>
 
@@ -510,13 +489,13 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View>
                 {/* 日時変更 (タップ可能・シンプル表示) */}
-                <Text style={{ fontWeight: "900", marginBottom: 6 }}>日時</Text>
+                <Text style={{ fontWeight: "700", marginBottom: 6 }}>日時</Text>
                 <Pressable
                   onPress={() => setShowDatePicker(true)}
                   style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 12, padding: 12, marginBottom: 14 }}
                 >
                   {/* ✅ 年を削除し、月日時間を表示 */}
-                  <Text style={{ fontWeight: "900", color: "#111" }}>
+                  <Text style={{ fontWeight: "700", color: "#111" }}>
                     {formDate.getMonth() + 1}月{formDate.getDate()}日 {pad2(formDate.getHours())}:{pad2(formDate.getMinutes())}
                   </Text>
                   <Text style={{ fontSize: 11, color: "#999", marginTop: 4 }}>タップして変更</Text>
@@ -538,11 +517,11 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
                 )}
 
                 {/* 科目 */}
-                <Text style={{ fontWeight: "900", marginBottom: 6 }}>科目</Text>
+                <Text style={{ fontWeight: "700", marginBottom: 6 }}>科目</Text>
                 <SubjectPickerModal value={subject} onChange={setSubject} />
 
                 {/* 重要度 */}
-                <Text style={{ fontWeight: "900", marginBottom: 6, marginTop: 12 }}>重要度</Text>
+                <Text style={{ fontWeight: "700", marginBottom: 6, marginTop: 12 }}>重要度</Text>
                 <View style={{ flexDirection: "row", marginBottom: 12 }}>
                   {[1, 2, 3].map((v) => (
                     <Chip
@@ -556,7 +535,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
 
 {/* ... (前略) ... */}
 {/* タイトル */}
-<Text style={{ fontWeight: "900", marginBottom: 6 }}>タイトル</Text>
+<Text style={{ fontWeight: "700", marginBottom: 6 }}>タイトル</Text>
 <TextInput
   value={title}
   onChangeText={setTitle}
@@ -573,7 +552,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
 
 
 {/* 内容 */}
-<Text style={{ fontWeight: "900", marginBottom: 6 }}>内容</Text>
+<Text style={{ fontWeight: "700", marginBottom: 6 }}>内容</Text>
 <TextInput
   value={body}
   onChangeText={setBody}
@@ -593,7 +572,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
 
 
                 {/* 写真 */}
-                <Text style={{ fontWeight: "900", marginBottom: 6 }}>写真</Text>
+                <Text style={{ fontWeight: "700", marginBottom: 6 }}>写真</Text>
                 <PhotoGallery
                   photos={photos}
                   onPressAdd={pickPhotos}
@@ -608,3 +587,4 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
     </>
   );
 }
+

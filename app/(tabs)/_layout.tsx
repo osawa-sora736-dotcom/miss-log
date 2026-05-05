@@ -1,7 +1,11 @@
 // app/(tabs)/_layout.tsx
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 import { Text } from "react-native";
 import { AppColors } from "../../constants/app-theme";
+import { getMistakeCount } from "../../lib/db";
+import { FREE_MISTAKE_LIMIT, isProUnlocked } from "../../lib/subscription";
 
 const TabIcon = ({
   label,
@@ -22,6 +26,24 @@ const TabIcon = ({
 );
 
 export default function TabLayout() {
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      (async () => {
+        const proUnlocked = await isProUnlocked();
+        const mistakeCount = getMistakeCount();
+        if (active && !proUnlocked && mistakeCount > FREE_MISTAKE_LIMIT) {
+          router.replace("/subscription" as any);
+        }
+      })();
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
   return (
     <Tabs
       screenOptions={{

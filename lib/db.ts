@@ -13,6 +13,7 @@ export type MistakeRow = {
   subject: string;
   importance: number;
   occurred_at: string;
+  is_bookmarked?: number;
 
   // 一覧の1枚目プレビュー用（searchMistakesで付与）
   firstPhotoUri?: string | null;
@@ -202,6 +203,12 @@ export function initDb() {
   if (!cols.includes("body")) {
     // もし本当に無いDBなら致命的に違うので、本来はここでエラーにした方が早い
   }
+
+  if (!cols.includes("is_bookmarked")) {
+    db.execSync(
+      `ALTER TABLE mistakes ADD COLUMN is_bookmarked INTEGER NOT NULL DEFAULT 0;`
+    );
+  }
 }
 
 /** ====== Insert ====== */
@@ -275,6 +282,18 @@ export function getPhotosByMistakeId(mistakeId: number): MistakePhotoRow[] {
   );
 }
 
+export function getAllMistakePhotos(): MistakePhotoRow[] {
+  return db.getAllSync<MistakePhotoRow>(
+    `SELECT id, mistake_id, uri, created_at
+     FROM mistake_photos
+     ORDER BY id ASC;`
+  );
+}
+
+export function updateMistakePhotoUri(photoId: number, uri: string) {
+  db.runSync(`UPDATE mistake_photos SET uri = ? WHERE id = ?;`, [uri, photoId]);
+}
+
 export function deleteMistakePhoto(photoId: number) {
   db.runSync(`DELETE FROM mistake_photos WHERE id = ?;`, [photoId]);
 }
@@ -283,10 +302,17 @@ export function deleteMistakePhoto(photoId: number) {
 /** デフォ：重要度 高→低、発生日時 新→旧 */
 export function getAllMistakes(): MistakeRow[] {
   return db.getAllSync<MistakeRow>(`
-    SELECT id, title, body, subject, importance, occurred_at, created_at, updated_at
+    SELECT id, title, body, subject, importance, occurred_at, created_at, updated_at, is_bookmarked
     FROM mistakes
-    ORDER BY importance DESC, occurred_at DESC;
+    ORDER BY is_bookmarked DESC, importance DESC, occurred_at DESC;
   `);
+}
+
+export function getMistakeCount(): number {
+  const row = db.getFirstSync<{ count: number }>(
+    `SELECT COUNT(*) as count FROM mistakes;`
+  );
+  return row?.count ?? 0;
 }
 
 /** ======= Search / Filter / Sort ======= */
@@ -296,6 +322,7 @@ export function searchMistakes(params: {
   q?: string; // 部分一致（日本語OK）
   subject?: string; // "ALL" or undefined なら全件
   importance?: number; // 0 or undefined なら全件
+  bookmarked?: boolean;
   sort?: "importance" | "date" | "subject" | "review";
 }): MistakeRow[] {
   const q = (params.q ?? "").trim();
@@ -320,6 +347,10 @@ export function searchMistakes(params: {
     args.push(params.importance);
   }
 
+  if (params.bookmarked) {
+    where.push("m.is_bookmarked = 1");
+  }
+
   // 日付範囲（復習用）
   if (params.from) {
     where.push("m.occurred_at >= ?");
@@ -333,12 +364,12 @@ export function searchMistakes(params: {
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
   const orderSql =
     params.sort === "review"
-      ? "ORDER BY m.importance DESC, m.occurred_at ASC"
+      ? "ORDER BY m.is_bookmarked DESC, m.importance DESC, m.occurred_at ASC"
       : params.sort === "importance"
-      ? "ORDER BY m.importance DESC, m.occurred_at DESC"
+      ? "ORDER BY m.is_bookmarked DESC, m.importance DESC, m.occurred_at DESC"
       : params.sort === "subject"
-      ? "ORDER BY m.subject ASC, m.occurred_at DESC"
-      : "ORDER BY m.occurred_at DESC";
+      ? "ORDER BY m.is_bookmarked DESC, m.subject ASC, m.occurred_at DESC"
+      : "ORDER BY m.is_bookmarked DESC, m.occurred_at DESC";
 
   // ★ firstPhotoUri をサブクエリで付与（一覧プレビュー用）
   const sql = `
@@ -362,7 +393,7 @@ export function searchMistakes(params: {
 /** ====== Detail ====== */
 export function getMistakeById(id: number): MistakeRow | null {
   const row = db.getFirstSync<MistakeRow>(
-    `SELECT id, title, body, subject, importance, occurred_at, created_at, updated_at
+    `SELECT id, title, body, subject, importance, occurred_at, created_at, updated_at, is_bookmarked
      FROM mistakes
      WHERE id = ?`,
     [id]
@@ -400,6 +431,20 @@ export function updateMistake(params: {
 /** ====== Delete ====== */
 export function deleteMistake(id: number) {
   db.runSync(`DELETE FROM mistakes WHERE id = ?`, [id]);
+}
+
+export function deleteMistakes(ids: number[]) {
+  if (!ids.length) return;
+  const placeholders = ids.map(() => "?").join(", ");
+  db.runSync(`DELETE FROM mistakes WHERE id IN (${placeholders});`, ids);
+}
+
+export function setMistakeBookmarked(id: number, bookmarked: boolean) {
+  db.runSync(`UPDATE mistakes SET is_bookmarked = ?, updated_at = ? WHERE id = ?;`, [
+    bookmarked ? 1 : 0,
+    nowIso(),
+    id,
+  ]);
 }
 
 /** ====== Subjects (user editable) ====== */
@@ -477,7 +522,7 @@ export function deleteSubject(name: string) {
 // バックアップ用の“完全データ”
 export function exportAllDataForBackup() {
   const mistakes = db.getAllSync<any>(`
-    SELECT id, title, body, subject, importance, occurred_at, created_at, updated_at
+    SELECT id, title, body, subject, importance, occurred_at, created_at, updated_at, is_bookmarked
     FROM mistakes
     ORDER BY id ASC;
   `);
@@ -548,8 +593,8 @@ export function importAllDataFromBackup(payload: {
 
     // mistakes
     const mStmt = db.prepareSync(
-      `INSERT INTO mistakes (id, title, body, subject, importance, occurred_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
+      `INSERT INTO mistakes (id, title, body, subject, importance, occurred_at, created_at, updated_at, is_bookmarked)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`
     );
     try {
       for (const m of payload.mistakes ?? []) {
@@ -562,6 +607,7 @@ export function importAllDataFromBackup(payload: {
           String(m.occurred_at ?? nowIso()),
           String(m.created_at ?? nowIso()),
           String(m.updated_at ?? nowIso()),
+          Number(m.is_bookmarked ?? 0),
         ]);
       }
     } finally {

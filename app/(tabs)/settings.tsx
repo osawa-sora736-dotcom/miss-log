@@ -1,22 +1,45 @@
-// app/(tabs)/settings.tsx
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
-// ✅ 最新のSDK対応
+import { router } from "expo-router";
 import * as FileSystem from "expo-file-system/legacy";
 import { createZipBackup, restoreFromZipBackup } from "../../lib/backup";
 import { AppColors } from "../../constants/app-theme";
+import {
+  getAllMistakePhotos,
+  getMistakeCount,
+  updateMistakePhotoUri,
+} from "../../lib/db";
+import { saveOptimizedPhoto } from "../../lib/photos";
+import { FREE_MISTAKE_LIMIT, isProUnlocked } from "../../lib/subscription";
+
+const formatMb = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 
 export default function SettingsScreen() {
   const [busy, setBusy] = useState(false);
+  const [busyDots, setBusyDots] = useState(0);
   const [toast, setToast] = useState("");
 
-  // ✅ 修正済みのパス取得ロジック
   const photosDir = useMemo(() => {
     const base = (FileSystem as any).documentDirectory ?? (FileSystem as any).cacheDirectory ?? "";
     return `${base}mistake-photos/`;
   }, []);
 
-  const showToast = (msg: string, ms = 1600) => {
+  const busyLabel = `処理中${".".repeat(busyDots)}`;
+
+  useEffect(() => {
+    if (!busy) {
+      setBusyDots(0);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setBusyDots((current) => (current + 1) % 4);
+    }, 420);
+
+    return () => clearInterval(timer);
+  }, [busy]);
+
+  const showToast = (msg: string, ms = 1800) => {
     setToast(msg);
     setTimeout(() => setToast(""), ms);
   };
@@ -25,12 +48,10 @@ export default function SettingsScreen() {
     if (busy) return;
     setBusy(true);
     try {
-      console.log("Backup target:", photosDir);
       await createZipBackup(photosDir);
-      showToast("バックアップZIPを作成しました（共有画面から保存できます）", 2200);
+      showToast("バックアップZIPを作成しました");
     } catch (e: any) {
-      console.log(e);
-      Alert.alert("作成失敗", `バックアップ作成に失敗しました\n${e.message}`);
+      Alert.alert("作成に失敗しました", e?.message ?? "もう一度お試しください。");
     } finally {
       setBusy(false);
     }
@@ -40,8 +61,8 @@ export default function SettingsScreen() {
     if (busy) return;
 
     Alert.alert(
-      "復元しますか？",
-      "現在のデータはすべて消え、バックアップの内容に置き換わります。\n（元に戻せません）",
+      "バックアップから復元しますか？",
+      "現在のデータはバックアップ内容に置き換わります。元に戻せないので注意してください。",
       [
         { text: "キャンセル", style: "cancel" },
         {
@@ -50,16 +71,91 @@ export default function SettingsScreen() {
           onPress: async () => {
             setBusy(true);
             try {
-              console.log("Restore target:", photosDir);
               const result = await restoreFromZipBackup(photosDir);
               if (result === "canceled") {
                 showToast("キャンセルしました");
               } else {
-                Alert.alert("完了", "復元が完了しました！\nアプリを再起動すると反映されます。");
+                const proUnlocked = await isProUnlocked();
+                const mistakeCount = getMistakeCount();
+                if (!proUnlocked && mistakeCount > FREE_MISTAKE_LIMIT) {
+                  Alert.alert(
+                    "復元しました",
+                    `${mistakeCount}件の記録があるため、続けるにはミスログProが必要です。`,
+                    [{ text: "OK", onPress: () => router.replace("/subscription" as any) }]
+                  );
+                } else {
+                  Alert.alert("復元しました", "アプリを再起動すると反映されます。");
+                }
               }
             } catch (e: any) {
-              console.log(e);
-              Alert.alert("復元失敗", `復元できませんでした\n${e.message}`);
+              Alert.alert("復元に失敗しました", e?.message ?? "もう一度お試しください。");
+            } finally {
+              setBusy(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const onOptimizePhotos = async () => {
+    if (busy) return;
+
+    Alert.alert(
+      "既存写真を軽量化しますか？",
+      "保存済みの写真を圧縮し、バックアップサイズを小さくします。元の写真より重くなる場合は置き換えません。",
+      [
+        { text: "キャンセル", style: "cancel" },
+        {
+          text: "軽量化する",
+          onPress: async () => {
+            setBusy(true);
+            let checked = 0;
+            let optimized = 0;
+            let beforeTotal = 0;
+            let afterTotal = 0;
+
+            try {
+              const photos = getAllMistakePhotos();
+
+              for (const photo of photos) {
+                const beforeInfo = await FileSystem.getInfoAsync(photo.uri);
+                if (!beforeInfo.exists) continue;
+
+                checked += 1;
+                const beforeSize = Number((beforeInfo as any).size ?? 0);
+                beforeTotal += beforeSize;
+
+                const optimizedUri = await saveOptimizedPhoto(photo.uri, photosDir);
+                const afterInfo = await FileSystem.getInfoAsync(optimizedUri);
+                const afterSize = Number((afterInfo as any).size ?? 0);
+
+                if (afterInfo.exists && afterSize > 0 && afterSize < beforeSize * 0.95) {
+                  updateMistakePhotoUri(photo.id, optimizedUri);
+                  optimized += 1;
+                  afterTotal += afterSize;
+                  try {
+                    await FileSystem.deleteAsync(photo.uri, { idempotent: true });
+                  } catch {}
+                } else {
+                  afterTotal += beforeSize;
+                  try {
+                    await FileSystem.deleteAsync(optimizedUri, { idempotent: true });
+                  } catch {}
+                }
+              }
+
+              if (checked === 0) {
+                Alert.alert("写真がありません", "軽量化できる写真が見つかりませんでした。");
+                return;
+              }
+
+              Alert.alert(
+                "軽量化しました",
+                `${checked}枚を確認し、${optimized}枚を軽量化しました。\n${formatMb(beforeTotal)} → ${formatMb(afterTotal)}`
+              );
+            } catch (e: any) {
+              Alert.alert("軽量化に失敗しました", e?.message ?? "もう一度お試しください。");
             } finally {
               setBusy(false);
             }
@@ -71,40 +167,26 @@ export default function SettingsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      {/* ヘッダー */}
-      <View
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 16,
-          paddingBottom: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: "#eee",
-        }}
-      >
-       
-        <Text style={{ marginTop: 6, fontSize: 12, color: "#666", lineHeight: 18 }}>
-          引き継ぎは「ZIPバックアップ」で行えます。機種変更前に必ず作成してください。
-        </Text>
-      </View>
-
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-        {/* ===== ZIP引き継ぎ ===== */}
+        <Text style={{ marginBottom: 12, fontSize: 12, color: "#64748B", lineHeight: 18 }}>
+          データの保存、復元、印刷用ファイルの作成ができます。
+        </Text>
+
         <View
           style={{
             borderWidth: 1,
-            borderColor: "#eee",
+            borderColor: "#E2E8F0",
             borderRadius: 16,
             padding: 14,
             marginBottom: 14,
             backgroundColor: "#fff",
           }}
         >
-          <Text style={{ fontSize: 16, fontWeight: "900", color: "#111" }}>
-            📦 ZIPバックアップ（引き継ぎ）
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#0F172A" }}>
+            ZIPバックアップ
           </Text>
-
-          <Text style={{ marginTop: 8, fontSize: 12, color: "#666", lineHeight: 18 }}>
-            このZIPには「ミスの記録 / 写真 / 科目設定」がすべて含まれます。
+          <Text style={{ marginTop: 8, fontSize: 12, color: "#64748B", lineHeight: 18 }}>
+            ミスの記録、写真、科目設定をZIPファイルとして保存できます。機種変更前にもおすすめです。
           </Text>
 
           <View style={{ marginTop: 12, flexDirection: "row", gap: 10 }}>
@@ -113,14 +195,14 @@ export default function SettingsScreen() {
               disabled={busy}
               style={{
                 flex: 1,
-                backgroundColor: busy ? "#cfcfcf" : AppColors.primaryDark,
+                backgroundColor: busy ? "#94A3B8" : AppColors.primaryDark,
                 paddingVertical: 12,
                 borderRadius: 14,
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: "#fff", fontWeight: "900" }}>
-                {busy ? "処理中…" : "バックアップ作成"}
+              <Text style={{ color: "#fff", fontWeight: "600" }}>
+                {busy ? busyLabel : "作成"}
               </Text>
             </Pressable>
 
@@ -129,104 +211,105 @@ export default function SettingsScreen() {
               disabled={busy}
               style={{
                 flex: 1,
-                backgroundColor: busy ? "#cfcfcf" : "#111",
+                backgroundColor: busy ? "#94A3B8" : "#0F172A",
                 paddingVertical: 12,
                 borderRadius: 14,
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: "#fff", fontWeight: "900" }}>
-                {busy ? "処理中…" : "バックアップから復元"}
+              <Text style={{ color: "#fff", fontWeight: "600" }}>
+                {busy ? busyLabel : "復元"}
               </Text>
             </Pressable>
           </View>
-
-          <View
-            style={{
-              marginTop: 10,
-              padding: 10,
-              borderRadius: 12,
-              backgroundColor: "#fafafa",
-            }}
-          >
-            <Text style={{ fontSize: 12, color: "#666", lineHeight: 18 }}>
-              • 例：ファイルアプリ / iCloud Drive  などに保存できます{"\n"}
-              • 復元すると、端末内のデータはバックアップ内容に置き換わります
-            </Text>
-          </View>
         </View>
 
-        {/* ===== iCloud同期（未実装・表示のみ復活） ===== */}
         <View
           style={{
             borderWidth: 1,
-            borderColor: "#eee",
+            borderColor: "#E2E8F0",
             borderRadius: 16,
             padding: 14,
             marginBottom: 14,
             backgroundColor: "#fff",
-            opacity: 0.6,
           }}
         >
-          <Text style={{ fontSize: 16, fontWeight: "900", color: "#111" }}>
-            iCloud同期
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#0F172A" }}>
+            写真を軽量化
           </Text>
-          <Text style={{ marginTop: 8, fontSize: 12, color: "#666", lineHeight: 18 }}>
-            ※ 準備中です。現状はZIPバックアップをご利用ください。
+          <Text style={{ marginTop: 8, fontSize: 12, color: "#64748B", lineHeight: 18 }}>
+            以前に保存した写真を圧縮して、普段の保存容量とバックアップZIPを小さくします。
           </Text>
 
           <Pressable
-            disabled
+            onPress={onOptimizePhotos}
+            disabled={busy}
             style={{
               marginTop: 12,
-              backgroundColor: "#e5e5e5",
+              backgroundColor: busy ? "#94A3B8" : AppColors.primary,
               paddingVertical: 12,
               borderRadius: 14,
               alignItems: "center",
             }}
           >
-            <Text style={{ color: "#888", fontWeight: "900" }}>
-              同期を有効にする（準備中）
+            <Text style={{ color: "#fff", fontWeight: "600" }}>
+              {busy ? busyLabel : "既存写真を軽量化"}
             </Text>
           </Pressable>
         </View>
 
-        {/* ===== 印刷用エクスポート（未実装・表示のみ復活） ===== */}
         <View
           style={{
             borderWidth: 1,
-            borderColor: "#eee",
+            borderColor: "#E2E8F0",
             borderRadius: 16,
             padding: 14,
+            marginBottom: 14,
             backgroundColor: "#fff",
-            opacity: 0.6,
           }}
         >
-          <Text style={{ fontSize: 16, fontWeight: "900", color: "#111" }}>
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#0F172A" }}>
             印刷用エクスポート
           </Text>
-          <Text style={{ marginTop: 8, fontSize: 12, color: "#666", lineHeight: 18 }}>
-            ※ 準備中です。PDF/HTML出力に対応予定です。
+          <Text style={{ marginTop: 8, fontSize: 12, color: "#64748B", lineHeight: 18 }}>
+            ミスを絞り込んで選択し、印刷しやすいHTMLファイルを作成します。
           </Text>
 
           <Pressable
-            disabled
+            onPress={() => router.push("/export-print" as any)}
+            disabled={busy}
             style={{
               marginTop: 12,
-              backgroundColor: "#e5e5e5",
+              backgroundColor: busy ? "#94A3B8" : AppColors.primaryDark,
               paddingVertical: 12,
               borderRadius: 14,
               alignItems: "center",
             }}
           >
-            <Text style={{ color: "#888", fontWeight: "900" }}>
-              エクスポートする（準備中）
-            </Text>
+            <Text style={{ color: "#fff", fontWeight: "600" }}>印刷用ファイルを作る</Text>
           </Pressable>
         </View>
 
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: "#E2E8F0",
+            borderRadius: 16,
+            padding: 14,
+            backgroundColor: "#fff",
+            opacity: 0.65,
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#0F172A" }}>
+            iCloud同期
+          </Text>
+          <Text style={{ marginTop: 8, fontSize: 12, color: "#64748B", lineHeight: 18 }}>
+            準備中です。今はZIPバックアップをご利用ください。
+          </Text>
+        </View>
+
         {toast ? (
-          <Text style={{ marginTop: 14, color: AppColors.primaryDark, fontWeight: "900" }}>
+          <Text style={{ marginTop: 14, color: AppColors.primaryDark, fontWeight: "600" }}>
             {toast}
           </Text>
         ) : null}

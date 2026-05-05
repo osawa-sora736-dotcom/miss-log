@@ -18,7 +18,9 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 
-import { insertMistake, insertMistakePhotos } from "../../lib/db";
+import { getMistakeCount, insertMistake, insertMistakePhotos } from "../../lib/db";
+import { FREE_MISTAKE_LIMIT, isProUnlocked } from "../../lib/subscription";
+import { saveOptimizedPhotos } from "../../lib/photos";
 import { SubjectPickerModal, Subject } from "../../components/SubjectPickerModal";
 import { PhotoGallery } from "../_components/PhotoGallery";
 import { AppColors } from "../../constants/app-theme";
@@ -72,21 +74,6 @@ const dateParamToDate = (dateParam: string) => {
 };
 
 type PickedPhoto = { uri: string };
-
-const ensureDir = async (dirUri: string) => {
-  const info = await FileSystem.getInfoAsync(dirUri);
-  if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(dirUri, { intermediates: true });
-  }
-};
-
-const genFileName = (srcUri: string) => {
-  const ext = (() => {
-    const m = srcUri.match(/\.([a-zA-Z0-9]+)(\?|#|$)/);
-    return m?.[1]?.toLowerCase() ?? "jpg";
-  })();
-  return `${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
-};
 
 export default function AddScreen() {
   const scrollRef = useRef<ScrollView>(null);
@@ -152,7 +139,7 @@ export default function AddScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       selectionLimit: 0,
-      quality: 1,
+      quality: 0.75,
     });
 
     if (result.canceled) return;
@@ -188,6 +175,14 @@ export default function AddScreen() {
     if (!b) return showToast("内容を入力してください");
 
     try {
+      const proUnlocked = await isProUnlocked();
+      const mistakeCount = getMistakeCount();
+      if (!proUnlocked && mistakeCount >= FREE_MISTAKE_LIMIT) {
+        Keyboard.dismiss();
+        router.push("/subscription" as any);
+        return;
+      }
+
       const savedPhotoUris = photos.map((p) => p.uri);
 
       const mistakeId = await insertMistake({
@@ -200,15 +195,8 @@ export default function AddScreen() {
 
       if (savedPhotoUris.length > 0) {
         if (photosDir) {
-           await ensureDir(photosDir);
-           const finalUris = [];
-           for(const uri of savedPhotoUris) {
-             const fileName = genFileName(uri);
-             const dest = `${photosDir}${fileName}`;
-             await FileSystem.copyAsync({ from: uri, to: dest });
-             finalUris.push(dest);
-           }
-           await insertMistakePhotos(mistakeId, finalUris);
+          const finalUris = await saveOptimizedPhotos(savedPhotoUris, photosDir);
+          await insertMistakePhotos(mistakeId, finalUris);
         }
       }
 
