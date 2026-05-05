@@ -433,6 +433,13 @@ h3 {
   background-position: 18px 0, 0 0;
 }
 
+.feature-grid h3,
+.audience-card h3,
+.steps strong {
+  padding-bottom: 12px;
+  border-bottom: 2px dotted var(--primary);
+}
+
 .feature-icon {
   display: inline-flex;
   margin-bottom: 28px;
@@ -581,6 +588,10 @@ h3 {
     linear-gradient(90deg, rgba(14, 165, 233, 0.18) 0, rgba(14, 165, 233, 0.18) 1px, transparent 1px),
     repeating-linear-gradient(180deg, #fff 0, #fff 29px, rgba(14, 165, 233, 0.12) 30px);
   background-position: 18px 0, 0 0;
+}
+
+.steps strong {
+  display: block;
 }
 
 .quote-section {
