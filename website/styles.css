@@ -421,22 +421,16 @@ h3 {
 
 .feature-grid h3,
 .audience-card h3,
-.steps strong {
+.steps strong,
+.review-grid strong {
   padding-bottom: 12px;
   border-bottom: 0;
   background-image:
     linear-gradient(var(--primary), var(--primary)),
-    radial-gradient(circle, var(--primary) 0 4px, transparent 4.5px);
+    radial-gradient(circle, var(--primary) 0 2.8px, transparent 3.2px);
   background-repeat: no-repeat, repeat-x;
-  background-size: 100% 1px, 28px 8px;
-  background-position: left calc(100% - 4px), left bottom;
-}
-
-.feature-icon {
-  display: inline-flex;
-  margin-bottom: 28px;
-  color: var(--primary-dark);
-  font-weight: 900;
+  background-size: 100% 1px, 20px 6px;
+  background-position: left calc(100% - 3px), left bottom;
 }
 
 .feature-grid p,
@@ -722,11 +716,6 @@ h3 {
   .feature-grid article {
     min-height: auto;
     padding: 14px;
-  }
-
-  .feature-icon {
-    margin-bottom: 10px;
-    font-size: 13px;
   }
 
   .feature-grid h3 {
