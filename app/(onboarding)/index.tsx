@@ -32,11 +32,11 @@ export default function Onboarding1() {
                 color: "#0F172A",
               }}
             >
-              同じミスは、もうしない。
+              同じミスはもうしない
             </Text>
 
             <Text style={{ marginTop: 16, fontSize: 16, lineHeight: 28, color: "#334155" }}>
-              ミスログは、失敗を責めるためではなく、次に勝つために残す記録ノートです。
+              ミスログはあなたのための記録ノートです。
             </Text>
 
             <View style={{ marginTop: 24, gap: 10 }}>

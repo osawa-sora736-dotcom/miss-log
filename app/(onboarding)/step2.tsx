@@ -29,10 +29,10 @@ export default function Onboarding2() {
         <View style={{ flex: 1, justifyContent: "space-between" }}>
           <View>
             <Text style={{ fontSize: 26, lineHeight: 34, fontWeight: "700", color: "#0F172A" }}>
-              記録は、あなたの強みになる。
+              記録があなたの強みになる。
             </Text>
             <Text style={{ marginTop: 12, fontSize: 15, lineHeight: 25, color: "#334155" }}>
-              受験でも仕事でも、伸びる人は「次にどうするか」を残しています。
+              受験にも仕事にもつかえます。
             </Text>
 
             <View style={{ marginTop: 22, gap: 10 }}>
