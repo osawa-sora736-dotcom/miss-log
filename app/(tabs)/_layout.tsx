@@ -24,6 +24,7 @@ const TabIcon = ({
 export default function TabLayout() {
   return (
     <Tabs
+      initialRouteName="add"
       screenOptions={{
         headerShown: true,
         headerTitleAlign: "center",

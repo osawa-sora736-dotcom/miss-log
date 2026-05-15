@@ -1,10 +1,7 @@
-﻿import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppColors } from "../../constants/app-theme";
-
-const ONBOARDING_KEY = "onboardingDone";
 
 function Point({ text }: { text: string }) {
   return (
@@ -24,14 +21,8 @@ function Point({ text }: { text: string }) {
 }
 
 export default function Onboarding3() {
-  const onStart = async () => {
-    try {
-      await AsyncStorage.setItem(ONBOARDING_KEY, "true");
-      router.replace("/(tabs)");
-    } catch (e) {
-      console.warn(e);
-      Alert.alert("エラー", "保存に失敗しました。もう一度お試しください。");
-    }
+  const onStart = () => {
+    router.replace("/(tabs)/add");
   };
 
   return (
@@ -107,4 +98,3 @@ export default function Onboarding3() {
     </SafeAreaView>
   );
 }
-

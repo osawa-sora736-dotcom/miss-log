@@ -1,37 +1,32 @@
 // app/_layout.tsx
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { initDb } from "../lib/db";
-
-const ONBOARDING_KEY = "onboardingDone";
+import { getMistakeCount, initDb } from "../lib/db";
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
-  const [onboardingDone, setOnboardingDone] = useState<boolean>(false);
+  const [initialRouteName, setInitialRouteName] = useState<"(onboarding)" | "(tabs)">("(onboarding)");
 
   useEffect(() => {
     initDb();
     console.log("DB init + migrate done");
 
-    (async () => {
-      try {
-        const v = await AsyncStorage.getItem(ONBOARDING_KEY);
-        setOnboardingDone(v === "true");
-      } catch (e) {
-        console.warn("Failed to read onboarding flag", e);
-        setOnboardingDone(false);
-      } finally {
-        setReady(true);
-      }
-    })();
+    try {
+      setInitialRouteName(getMistakeCount() > 0 ? "(tabs)" : "(onboarding)");
+    } catch (e) {
+      console.warn("Failed to read mistake count", e);
+      setInitialRouteName("(onboarding)");
+    } finally {
+      setReady(true);
+    }
   }, []);
 
-  // 初回フラグ読み込み前に一瞬(tabs)が出ないようにする
+  // 初期画面が一瞬ちらつかないように、DB件数を確認してから表示する。
   if (!ready) return null;
 
   return (
     <Stack
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
         statusBarStyle: "dark",
@@ -39,14 +34,8 @@ export default function RootLayout() {
         headerTintColor: "#000",
       }}
     >
-      {/* 初回のみオンボーディング */}
-      {!onboardingDone ? (
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false, title: "" }} />
-      ) : (
-        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "" }} />
-      )}
-
-      {/* ミス詳細 */}
+      <Stack.Screen name="(onboarding)" options={{ headerShown: false, title: "" }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "" }} />
       <Stack.Screen
         name="mistake/[id]"
         options={{
