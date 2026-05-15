@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppColors } from "../../constants/app-theme";
-import { FREE_MISTAKE_LIMIT, SUBSCRIPTION_PRODUCT_ID } from "../../lib/subscription";
 
 const ONBOARDING_KEY = "onboardingDone";
 
@@ -41,10 +40,10 @@ export default function Onboarding3() {
         <View style={{ flex: 1, justifyContent: "space-between" }}>
           <View>
             <Text style={{ fontSize: 26, lineHeight: 34, fontWeight: "700", color: "#0F172A" }}>
-              まずは無料で、少しだけ。
+              まずは無料で、しっかり使えます。
             </Text>
             <Text style={{ marginTop: 12, fontSize: 15, lineHeight: 25, color: "#334155" }}>
-              最初の{FREE_MISTAKE_LIMIT}件は無料で記録できます。続けたいと思えたら、月額300円でミスログProへ。
+              現在、ミスログは無料で利用できます。今後、一部機能を有料プランとして提供する可能性があります。
             </Text>
 
             <View
@@ -58,28 +57,21 @@ export default function Onboarding3() {
               }}
             >
               <Text style={{ fontSize: 13, fontWeight: "700", color: "#64748B" }}>
-                ミスログ Pro
+                今後の予定
               </Text>
-              <View style={{ flexDirection: "row", alignItems: "flex-end", marginTop: 4 }}>
-                <Text style={{ fontSize: 38, fontWeight: "700", color: "#0F172A" }}>300</Text>
-                <Text style={{ marginBottom: 8, marginLeft: 4, fontSize: 15, fontWeight: "700" }}>
-                  円 / 月
-                </Text>
-              </View>
-              <Text style={{ marginTop: 6, fontSize: 13, lineHeight: 20, color: "#475569" }}>
-                コーヒー1杯より安く、毎日のミスを成長の材料として積み上げられます。
+              <Text style={{ marginTop: 6, fontSize: 20, lineHeight: 28, fontWeight: "700", color: "#0F172A" }}>
+                有料化する場合は、事前にお知らせします。
+              </Text>
+              <Text style={{ marginTop: 8, fontSize: 13, lineHeight: 20, color: "#475569" }}>
+                バックアップ、印刷用エクスポート、記録件数の拡張などを有料プランにする可能性があります。
               </Text>
             </View>
 
             <View style={{ marginTop: 16, gap: 10 }}>
               <Point text="記録が増えるほど、自分の弱点と伸びしろが見える" />
               <Point text="受験前・仕事前に、選んだミスを印刷して持ち歩ける" />
-              <Point text="商品IDだけ後で接続できる設計で、今はExpo Goで試せる" />
+              <Point text="有料化する場合は、アプリ内または公式サイトで事前に案内" />
             </View>
-
-            <Text style={{ marginTop: 14, fontSize: 11, lineHeight: 17, color: "#64748B" }}>
-              本番サブスクリプションID: {SUBSCRIPTION_PRODUCT_ID}
-            </Text>
           </View>
 
           <View style={{ marginTop: 24, gap: 10 }}>

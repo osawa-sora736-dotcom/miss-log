@@ -6,11 +6,9 @@ import { createZipBackup, restoreFromZipBackup } from "../../lib/backup";
 import { AppColors } from "../../constants/app-theme";
 import {
   getAllMistakePhotos,
-  getMistakeCount,
   updateMistakePhotoUri,
 } from "../../lib/db";
 import { saveOptimizedPhoto } from "../../lib/photos";
-import { FREE_MISTAKE_LIMIT, isProUnlocked } from "../../lib/subscription";
 
 const formatMb = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 
@@ -75,17 +73,7 @@ export default function SettingsScreen() {
               if (result === "canceled") {
                 showToast("キャンセルしました");
               } else {
-                const proUnlocked = await isProUnlocked();
-                const mistakeCount = getMistakeCount();
-                if (!proUnlocked && mistakeCount > FREE_MISTAKE_LIMIT) {
-                  Alert.alert(
-                    "復元しました",
-                    `${mistakeCount}件の記録があるため、続けるにはミスログProが必要です。`,
-                    [{ text: "OK", onPress: () => router.replace("/subscription" as any) }]
-                  );
-                } else {
-                  Alert.alert("復元しました", "アプリを再起動すると反映されます。");
-                }
+                Alert.alert("復元しました", "アプリを再起動すると反映されます。");
               }
             } catch (e: any) {
               Alert.alert("復元に失敗しました", e?.message ?? "もう一度お試しください。");
@@ -288,6 +276,24 @@ export default function SettingsScreen() {
           >
             <Text style={{ color: "#fff", fontWeight: "600" }}>印刷用ファイルを作る</Text>
           </Pressable>
+        </View>
+
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: "#E2E8F0",
+            borderRadius: 16,
+            padding: 14,
+            marginBottom: 14,
+            backgroundColor: "#fff",
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#0F172A" }}>
+            利用料金について
+          </Text>
+          <Text style={{ marginTop: 8, fontSize: 12, color: "#64748B", lineHeight: 18 }}>
+            現在、ミスログは無料で利用できます。今後、バックアップ、印刷用エクスポート、記録件数の拡張など、一部機能を有料プランとして提供する可能性があります。有料化する場合は、事前にアプリ内または公式サイトでお知らせします。
+          </Text>
         </View>
 
         <View

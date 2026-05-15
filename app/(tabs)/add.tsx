@@ -18,8 +18,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 
-import { getMistakeCount, insertMistake, insertMistakePhotos } from "../../lib/db";
-import { FREE_MISTAKE_LIMIT, isProUnlocked } from "../../lib/subscription";
+import { insertMistake, insertMistakePhotos } from "../../lib/db";
 import { saveOptimizedPhotos } from "../../lib/photos";
 import { SubjectPickerModal, Subject } from "../../components/SubjectPickerModal";
 import { PhotoGallery } from "../_components/PhotoGallery";
@@ -175,14 +174,6 @@ export default function AddScreen() {
     if (!b) return showToast("内容を入力してください");
 
     try {
-      const proUnlocked = await isProUnlocked();
-      const mistakeCount = getMistakeCount();
-      if (!proUnlocked && mistakeCount >= FREE_MISTAKE_LIMIT) {
-        Keyboard.dismiss();
-        router.push("/subscription" as any);
-        return;
-      }
-
       const savedPhotoUris = photos.map((p) => p.uri);
 
       const mistakeId = await insertMistake({
