@@ -1,53 +1,89 @@
-﻿import { router } from "expo-router";
+import { router } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppColors } from "../../constants/app-theme";
 
-function Feature({ title, body }: { title: string; body: string }) {
-  return (
-    <View
-      style={{
-        padding: 15,
-        borderRadius: 18,
-        backgroundColor: "#F8FAFC",
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-      }}
-    >
-      <Text style={{ fontSize: 15, fontWeight: "700", color: "#0F172A" }}>{title}</Text>
-      <Text style={{ marginTop: 7, fontSize: 13, lineHeight: 21, color: "#475569" }}>
-        {body}
-      </Text>
-    </View>
-  );
-}
-
 export default function Onboarding2() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F8FCFF" }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 22, paddingBottom: 28 }}>
-        <View style={{ flex: 1, justifyContent: "space-between" }}>
-          <View>
-            <Text style={{ fontSize: 26, lineHeight: 34, fontWeight: "700", color: "#0F172A" }}>
-              記録があなたの強みになる。
+        <View style={{ flex: 1, justifyContent: "space-between", overflow: "hidden" }}>
+          <View
+            style={{
+              position: "absolute",
+              top: 74,
+              left: -62,
+              width: 180,
+              height: 180,
+              borderRadius: 90,
+              backgroundColor: "#BAE6FD",
+              opacity: 0.46,
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              top: 250,
+              right: -48,
+              width: 120,
+              height: 120,
+              borderRadius: 60,
+              backgroundColor: "#38BDF8",
+              opacity: 0.18,
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              bottom: 108,
+              left: 42,
+              width: 58,
+              height: 58,
+              borderRadius: 29,
+              backgroundColor: "#7DD3FC",
+              opacity: 0.42,
+            }}
+          />
+
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <Text
+              style={{
+                fontSize: 32,
+                lineHeight: 42,
+                fontWeight: "800",
+                color: "#0F172A",
+                textAlign: "center",
+              }}
+            >
+              記録があなたの{"\n"}強みになる。
             </Text>
-            <Text style={{ marginTop: 12, fontSize: 15, lineHeight: 25, color: "#334155" }}>
-              受験にも仕事にもつかえます。
+            <Text
+              style={{
+                marginTop: 18,
+                fontSize: 17,
+                lineHeight: 28,
+                color: "#0F172A",
+                textAlign: "center",
+              }}
+            >
+              受験にも仕事にも{"\n"}つかえます。
             </Text>
 
-            <View style={{ marginTop: 22, gap: 10 }}>
-              <Feature
-                title="ミスを1分で記録"
-                body="タイトル、科目、重要度、写真を残して、あとで思い出しやすくします。"
-              />
-              <Feature
-                title="復習で忘れにくく"
-                body="昨日・1週間前・先月・ランダムのミスを見返して、同じ失敗を減らします。"
-              />
-              <Feature
-                title="印刷して持ち歩ける"
-                body="大事なミスだけを絞り込んで、試験前や仕事前の見返し用にできます。"
-              />
+            <View
+              style={{
+                alignSelf: "center",
+                marginTop: 34,
+                paddingVertical: 10,
+                paddingHorizontal: 16,
+                borderRadius: 999,
+                backgroundColor: "#E0F2FE",
+                borderWidth: 1,
+                borderColor: "#BAE6FD",
+              }}
+            >
+              <Text style={{ color: AppColors.primaryDark, fontWeight: "800" }}>
+                ミスは、次の準備になる。
+              </Text>
             </View>
           </View>
 
@@ -56,23 +92,25 @@ export default function Onboarding2() {
               onPress={() => router.back()}
               style={{
                 paddingVertical: 14,
-                borderRadius: 16,
-                backgroundColor: "#F1F5F9",
+                borderRadius: 18,
+                backgroundColor: "#fff",
                 alignItems: "center",
+                borderWidth: 1,
+                borderColor: "#BAE6FD",
               }}
             >
-              <Text style={{ color: "#0F172A", fontWeight: "700" }}>戻る</Text>
+              <Text style={{ color: "#0F172A", fontWeight: "800" }}>戻る</Text>
             </Pressable>
             <Pressable
               onPress={() => router.push("/(onboarding)/step3")}
               style={{
                 paddingVertical: 15,
-                borderRadius: 16,
+                borderRadius: 18,
                 backgroundColor: AppColors.primaryDark,
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>次へ</Text>
+              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>次へ</Text>
             </Pressable>
           </View>
         </View>
@@ -80,4 +118,3 @@ export default function Onboarding2() {
     </SafeAreaView>
   );
 }
-
