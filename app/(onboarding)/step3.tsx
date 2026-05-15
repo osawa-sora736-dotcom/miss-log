@@ -30,7 +30,7 @@ export default function Onboarding3() {
       onPrimary={() => router.push("/(onboarding)/step4")}
     >
       <OnboardingTitle>
-        いつでも{"\n"}どこでも{"\n"}ミスを復習
+        いつでもどこでも{"\n"}ミスを復習
       </OnboardingTitle>
       <View style={{ marginTop: 24, gap: 10 }}>
         <Feature title="カレンダーで見返す" body="いつ、どんなミスをしたかを日付ごとに確認。" />

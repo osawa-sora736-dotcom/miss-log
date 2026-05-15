@@ -12,7 +12,7 @@ export default function Onboarding4() {
         まずは無料で{"\n"}はじめられます。
       </OnboardingTitle>
       <OnboardingBody>
-        今後、一部機能が有料になる場合は{"\n"}事前にお知らせします。
+        今後、一部機能を有料にする場合がありますが、{"\n"}その際は事前にお知らせします。
       </OnboardingBody>
     </OnboardingFrame>
   );
