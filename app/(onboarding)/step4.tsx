@@ -9,10 +9,10 @@ export default function Onboarding4() {
       onPrimary={() => router.replace("/(tabs)/add")}
     >
       <OnboardingTitle>
-        現在、ミスログは{"\n"}無料で利用できます。
+        まずは無料で{"\n"}はじめられます。
       </OnboardingTitle>
       <OnboardingBody>
-        今後、一部機能を有料プランとして{"\n"}提供する可能性があります。
+        今後、一部機能が有料になる場合は{"\n"}事前にお知らせします。
       </OnboardingBody>
     </OnboardingFrame>
   );

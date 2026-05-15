@@ -5,7 +5,7 @@ export default function Onboarding1() {
   return (
     <OnboardingFrame primaryLabel="次へ" onPrimary={() => router.push("/(onboarding)/step2")}>
       <OnboardingTitle>
-        同じミスは{"\n"}もうしない
+        ミスログは{"\n"}記録アプリです
       </OnboardingTitle>
       <OnboardingBody>
         ミスログはあなたのための{"\n"}記録ノートです。

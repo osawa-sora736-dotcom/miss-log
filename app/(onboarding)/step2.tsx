@@ -9,7 +9,7 @@ export default function Onboarding2() {
       onPrimary={() => router.push("/(onboarding)/step3")}
     >
       <OnboardingTitle>
-        記録があなたの{"\n"}強みになる。
+        積み重ねた記録が{"\n"}あなたの強みになる。
       </OnboardingTitle>
       <OnboardingBody>
         受験にも仕事にも{"\n"}つかえます。
