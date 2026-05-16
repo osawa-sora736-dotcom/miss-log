@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -40,7 +40,7 @@ export function SubjectPickerModal({
     }, 80);
   };
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     const list = getSubjects();
     setSubjects(list);
 
@@ -48,15 +48,15 @@ export function SubjectPickerModal({
     if (list.length && value && !list.includes(value)) {
       onChange(list[0]);
     }
-  };
+  }, [onChange, value]);
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
   useEffect(() => {
     if (open) refresh();
-  }, [open]);
+  }, [open, refresh]);
 
   const canEdit = useMemo(() => !!value, [value]);
 

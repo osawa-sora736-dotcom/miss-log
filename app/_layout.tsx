@@ -2,23 +2,35 @@
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { getMistakeCount, initDb } from "../lib/db";
+import { hasAcceptedLegal } from "../lib/legal";
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
-  const [initialRouteName, setInitialRouteName] = useState<"(onboarding)" | "(tabs)">("(onboarding)");
+  const [initialRouteName, setInitialRouteName] = useState<"legal-consent" | "(onboarding)" | "(tabs)">(
+    "legal-consent"
+  );
 
   useEffect(() => {
-    initDb();
-    console.log("DB init + migrate done");
+    const prepare = async () => {
+      initDb();
+      console.log("DB init + migrate done");
 
-    try {
-      setInitialRouteName(getMistakeCount() > 0 ? "(tabs)" : "(onboarding)");
-    } catch (e) {
-      console.warn("Failed to read mistake count", e);
-      setInitialRouteName("(onboarding)");
-    } finally {
-      setReady(true);
-    }
+      try {
+        const accepted = await hasAcceptedLegal();
+        if (!accepted) {
+          setInitialRouteName("legal-consent");
+        } else {
+          setInitialRouteName(getMistakeCount() > 0 ? "(tabs)" : "(onboarding)");
+        }
+      } catch (e) {
+        console.warn("Failed to prepare initial route", e);
+        setInitialRouteName("legal-consent");
+      } finally {
+        setReady(true);
+      }
+    };
+
+    prepare();
   }, []);
 
   // 初期画面が一瞬ちらつかないように、DB件数を確認してから表示する。
@@ -34,6 +46,7 @@ export default function RootLayout() {
         headerTintColor: "#000",
       }}
     >
+      <Stack.Screen name="legal-consent" options={{ headerShown: false, title: "" }} />
       <Stack.Screen name="(onboarding)" options={{ headerShown: false, title: "" }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "" }} />
       <Stack.Screen

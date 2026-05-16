@@ -25,9 +25,9 @@ function Feature({ title, body }: { title: string; body: string }) {
 export default function Onboarding3() {
   return (
     <OnboardingFrame
-      primaryLabel="次へ"
+      primaryLabel="はじめる"
       onBack={() => router.back()}
-      onPrimary={() => router.push("/(onboarding)/step4")}
+      onPrimary={() => router.replace("/(tabs)/add")}
     >
       <OnboardingTitle>
         いつでもどこでも{"\n"}ミスを復習

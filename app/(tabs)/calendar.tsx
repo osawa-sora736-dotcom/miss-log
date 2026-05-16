@@ -1,4 +1,4 @@
-﻿// app/(tabs)/calendar.tsx
+// app/(tabs)/calendar.tsx
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -266,6 +266,7 @@ const { countsByDayKey, scoresByDayKey, maxScoreInMonth } = useMemo(() => {
       Alert.alert("許可が必要です", "写真へのアクセスを許可してください");
       return;
     }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,

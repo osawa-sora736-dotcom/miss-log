@@ -53,7 +53,7 @@ function makeRanges(now = new Date()): {
   return {
     randomToday: {
       title: "今日のランダム復習",
-      desc: "毎日0時に更新・3件",
+      desc: "3件をランダム表示",
     },
     yesterday: {
       title: "昨日のミス",
@@ -90,8 +90,8 @@ const hashString = (value: string) => {
   return hash >>> 0;
 };
 
-const pickDailyRandom = (rows: MistakeRow[], now = new Date()) => {
-  const seed = daySeed(now);
+const pickDailyRandom = (rows: MistakeRow[], now = new Date(), refreshKey = 0) => {
+  const seed = `${daySeed(now)}:${refreshKey}`;
 
   return [...rows]
     .sort((a, b) => {
@@ -112,12 +112,16 @@ function Section({
   rows,
   expanded,
   onToggle,
+  actionLabel,
+  onAction,
   previewCount = 1,
 }: {
   spec: RangeSpec;
   rows: MistakeRow[];
   expanded: boolean;
   onToggle: () => void;
+  actionLabel?: string;
+  onAction?: () => void;
   previewCount?: number;
 }) {
   const show = expanded ? rows : rows.slice(0, previewCount);
@@ -152,7 +156,24 @@ function Section({
           ) : null}
         </View>
 
-        {rows.length > previewCount ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          {actionLabel && onAction ? (
+            <Pressable
+              onPress={onAction}
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 10,
+                borderRadius: 12,
+                backgroundColor: AppColors.primarySoft,
+              }}
+            >
+              <Text style={{ fontWeight: "900", color: AppColors.primaryDark }}>
+                {actionLabel}
+              </Text>
+            </Pressable>
+          ) : null}
+
+          {rows.length > previewCount ? (
           <Pressable
             onPress={onToggle}
             style={{
@@ -166,7 +187,8 @@ function Section({
               {expanded ? "閉じる" : "さらに見る"}
             </Text>
           </Pressable>
-        ) : null}
+          ) : null}
+        </View>
       </View>
 
       {rows.length === 0 ? (
@@ -273,6 +295,7 @@ function Section({
 
 export default function ReviewScreen() {
   const [ranges, setRanges] = useState(() => makeRanges(new Date()));
+  const [randomRefreshKey, setRandomRefreshKey] = useState(0);
   const [expanded, setExpanded] = useState<{ r: boolean; y: boolean; w: boolean; m: boolean }>({
     r: true,
     y: false,
@@ -288,7 +311,7 @@ export default function ReviewScreen() {
   const load = useCallback(() => {
     const nextRanges = makeRanges(new Date());
     setRanges(nextRanges);
-    setRRows(pickDailyRandom(searchMistakes({ sort: "date" })));
+    setRRows(pickDailyRandom(searchMistakes({ sort: "date" }), new Date(), randomRefreshKey));
 
     // sort:"review" ＝ importance DESC → occurred_at ASC
     setYRows(
@@ -314,6 +337,13 @@ export default function ReviewScreen() {
         sort: "review",
       })
     );
+  }, [randomRefreshKey]);
+
+  const refreshRandomToday = useCallback(() => {
+    const nextKey = Date.now();
+    setRandomRefreshKey(nextKey);
+    setRRows(pickDailyRandom(searchMistakes({ sort: "date" }), new Date(), nextKey));
+    setExpanded((current) => ({ ...current, r: true }));
   }, []);
 
   useFocusEffect(
@@ -340,6 +370,8 @@ export default function ReviewScreen() {
           rows={rRows}
           expanded={expanded.r}
           previewCount={3}
+          actionLabel="入れ替え"
+          onAction={refreshRandomToday}
           onToggle={() => setExpanded((p) => ({ ...p, r: !p.r }))}
         />
 

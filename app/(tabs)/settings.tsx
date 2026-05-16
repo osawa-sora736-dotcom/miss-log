@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import * as FileSystem from "expo-file-system/legacy";
 import { createZipBackup, restoreFromZipBackup } from "../../lib/backup";
 import { AppColors } from "../../constants/app-theme";
+import { openPrivacy, openTerms } from "../../lib/legal";
 import {
   getAllMistakePhotos,
   updateMistakePhotoUri,
@@ -156,10 +157,6 @@ export default function SettingsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-        <Text style={{ marginBottom: 12, fontSize: 12, color: "#64748B", lineHeight: 18 }}>
-          データの保存、復元、印刷用ファイルの作成ができます。
-        </Text>
-
         <View
           style={{
             borderWidth: 1,
@@ -289,11 +286,47 @@ export default function SettingsScreen() {
           }}
         >
           <Text style={{ fontSize: 16, fontWeight: "600", color: "#0F172A" }}>
-            利用料金について
+            規約・ポリシー
           </Text>
           <Text style={{ marginTop: 8, fontSize: 12, color: "#64748B", lineHeight: 18 }}>
-            現在、ミスログは無料で利用できます。今後、バックアップ、印刷用エクスポート、記録件数の拡張など、一部機能を有料プランとして提供する可能性があります。有料化する場合は、事前にアプリ内または公式サイトでお知らせします。
+            公式サイトの最新内容を確認できます。
           </Text>
+
+          <View style={{ marginTop: 12, flexDirection: "row", gap: 10 }}>
+            <Pressable
+              onPress={openTerms}
+              disabled={busy}
+              style={{
+                flex: 1,
+                borderWidth: 1,
+                borderColor: "#BAE6FD",
+                paddingVertical: 12,
+                borderRadius: 14,
+                alignItems: "center",
+                backgroundColor: "#F8FCFF",
+              }}
+            >
+              <Text style={{ color: AppColors.primaryDark, fontWeight: "600" }}>利用規約</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={openPrivacy}
+              disabled={busy}
+              style={{
+                flex: 1,
+                borderWidth: 1,
+                borderColor: "#BAE6FD",
+                paddingVertical: 12,
+                borderRadius: 14,
+                alignItems: "center",
+                backgroundColor: "#F8FCFF",
+              }}
+            >
+              <Text style={{ color: AppColors.primaryDark, fontWeight: "600" }}>
+                プライバシー
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         <View

@@ -1,5 +1,5 @@
 // app/mistake/[id].tsx
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Keyboard,
@@ -125,7 +125,7 @@ export default function MistakeDetailScreen() {
     setTimeout(() => setToast(""), ms);
   };
 
-  const reload = () => {
+  const reload = useCallback(() => {
     if (!Number.isFinite(mistakeId) || mistakeId <= 0) return;
 
     const r = getMistakeById(mistakeId);
@@ -139,13 +139,13 @@ export default function MistakeDetailScreen() {
       setBody(r.body ?? "");
       setPhotos(getPhotosByMistakeId(mistakeId));
     }
-  };
+  }, [mistakeId]);
 
   useEffect(() => {
     if (!Number.isFinite(mistakeId) || mistakeId <= 0) return;
     reload();
     setLoaded(true);
-  }, [mistakeId]);
+  }, [mistakeId, reload]);
 
   const onSave = () => {
     const t = title.trim();

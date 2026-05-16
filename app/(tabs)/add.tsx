@@ -90,6 +90,7 @@ export default function AddScreen() {
   const [body, setBody] = useState("");
 
   const [toast, setToast] = useState("");
+  const [saving, setSaving] = useState(false);
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
 
   const photosDir = useMemo(() => {
@@ -167,6 +168,8 @@ export default function AddScreen() {
   };
 
   const onSave = async () => {
+    if (saving) return;
+
     const t = title.trim();
     const b = body.trim();
 
@@ -174,6 +177,7 @@ export default function AddScreen() {
     if (!b) return showToast("内容を入力してください");
 
     try {
+      setSaving(true);
       const savedPhotoUris = photos.map((p) => p.uri);
 
       const mistakeId = await insertMistake({
@@ -192,7 +196,9 @@ export default function AddScreen() {
       }
 
       Keyboard.dismiss();
+      showToast("保存しました", 900);
       resetFormToNow();
+      await new Promise((resolve) => setTimeout(resolve, 650));
 
       // ✅ 修正ポイント: 保存後も確実に移動させる（エラー回避）
       if (params.from === "calendar") {
@@ -206,6 +212,8 @@ export default function AddScreen() {
     } catch (e: any) {
       console.log("save error:", e);
       Alert.alert("保存失敗", `原因: ${e.message}`);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -337,26 +345,51 @@ export default function AddScreen() {
 
           <Pressable
             onPress={onSave}
+            disabled={saving}
             style={{
               marginTop: 14,
-              backgroundColor: AppColors.primaryDark,
+              backgroundColor: saving ? "#94A3B8" : AppColors.primaryDark,
               paddingVertical: 14,
               borderRadius: 14,
               alignItems: "center",
             }}
           >
-            <Text style={{ color: "#fff", fontWeight: "900" }}>保存</Text>
-          </Pressable>
-
-          {toast ? (
-            <Text style={{ marginTop: 10, color: AppColors.primaryDark, fontWeight: "800" }}>
-              {toast}
+            <Text style={{ color: "#fff", fontWeight: "900" }}>
+              {saving ? "保存中..." : "保存"}
             </Text>
-          ) : null}
+          </Pressable>
 
           <View style={{ height: 80 }} />
         </ScrollView>
       </TouchableWithoutFeedback>
+
+      {toast ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            left: 16,
+            right: 16,
+            bottom: 28,
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              overflow: "hidden",
+              paddingHorizontal: 14,
+              paddingVertical: 9,
+              borderRadius: 999,
+              backgroundColor: "#0F172A",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: "800",
+            }}
+          >
+            {toast}
+          </Text>
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
