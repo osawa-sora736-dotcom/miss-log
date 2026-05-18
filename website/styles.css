@@ -686,6 +686,10 @@ h3 {
     width: var(--phone-width);
   }
 
+  .hero-points {
+    display: none;
+  }
+
   .section,
   .audience-section,
   .review-section,
